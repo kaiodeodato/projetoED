@@ -1,0 +1,106 @@
+
+// a cada 1 segundo, será gerado um numero aleatório de 0 a 3, que será a quantidade de clientes que entrarao no supermercado.
+// juntamente com esse numero de clientes, tb será gerado um numero aleatório para cada cliente, para se definir seu nome no vetor salvo do arquivo (clientes.txt) e 
+// para cada cliente tambem será gerado um numero aleatorio de 1 até 10 para se definir quantos produtos esse cliente vai comprar.
+// feito isso, serão gerados a quantidade de produtos sorteada de numeros aleatorios para se selecionar os nomes dos produtos a serem comprados no vetor produtos 
+// salvo do arquivo (produtos.txt), dessa forma, quando o cliente estiver pronto ele tera um nome, um id, e uma lista de produtos, o que nos dara algumas informaçoes importantes
+// como a hora de entrada, a quantidade de tempo para achar todos os produtos, a quantidade de tempo para pagar todos os produtos, instante previsto de fim de compras e alguns outros dados.
+
+// lembrando que os nomes dos clientes serão tirados do vetor proveniente de um arquivo txt disponibilizado, podendo ser sortiado o mesmo cliente que já esta na loja,
+// nesse caso, será necessário a checagem em cada sorteio por meio de uma função que check se o cliente já nao esta na loja. uma vez que o cliente já saiu, ele pode ser sorteado novamente.
+// produtos sorteados multiplas vezes não implicam problema algum.
+// importante ressaltar que os produtos estaram em uma lista ordenada por ordem de preco crescente, ou seja , o primeiro produto será sempre o mais barato na lista do cliente.
+// assim que o cliente "entrar na loja" ele será inserido em uma lista chamada algo como "listaClientesComprando" e na hashClientesAtivos, que terá todos os clientes dentro do estabelecimento
+// juntamente com seu status e outras informações necessasrias , esse novo cliente entrara de maneira ordenada nessa lista em relação ao instante 
+// previsto de fim de compras, dessa forma , essa lista ordenada, sempre sairá o primeiro cliente, que será checado a cada loop de 1 segundo e se o tempo de coleta
+// de produtos já acabou, será mandado para uma caixa.
+
+// lista de caixas (onde cada caixa tem uma fila de clientes esperando para pagar e um pagando (head), cliente entra no fim e sai no inicio (fila))
+// cada caixa tera um operador associado, salvo no arquivo colaboradores, e nesse mesmo arquivo tera a qual caixa ele pertence e seu id.
+// o cliente que esta no head, esperara os segundo totais para pagamento de todos os seus produtos e logo após será removido da fila da caixa, deixando a fila menor.
+// o cliente que acabou de recolher os produtos, será direcionado para a caixa com menos tempo acumulado de tempo de pagamento no total da fila, ou seja, cada caixa terá um valor de tempo 
+//total estimado de espera, correspondente ao tempo restante do cliente atualmente em atendimento, somado ao tempo de pagamento de todos os clientes que aguardam na fila.
+// o numero de filas será inicialmente 1, valor minimo de caixas, e se o numero médio de clientes por fila, checado a cada loop, ultrapassar um determinado valor MAX_FILA, será aberta uma nova fila.
+// Se o número médio de clientes na fila por caixa aberta for inferior a um dado valor MIN_FILA a caixa que tiver menos pessoas deve fechar (depois de atender as pessoas que tem em espera); 
+// tambem é possivel que um caixa seja aberto por ação do menu dessa forma, a struct da caixa tem que ter uma propriedade como "controleManualGerente" que faça com que aquela caixa nao seja
+// fechada automaticamente, apenas por intervençao do menu outra vez.
+
+// no menu será possivel tambem adicionar clientes e produtos nos vetores base salvos em memoria, e assim que a simulação for pausada ou acabar, 
+// esses dados serão salvos nos arquivos clientes.txt e produtos.txt, de maneira a ter as informações adicionadas salvas para futuras simulações.
+// quando um cliente chegar ao head de uma caixa para ser atendido, será calculado o tempo da propriedade "tempo que entrou na fila" até o tempo atual, 
+// se esse tempo for maior do que  MAX_ESPERA, o cliente ganhará o produto de menor valor, e esse valor será contabilizado tanto em numero de produtos oferecidos 
+// quanto em valor total. salvo em sistema. 
+// a oferta ocorre apenas uma unica vez.
+// em algum momento, um cliente que esta a espera em uma fila pode mudar de fila, respeitando os seguintes critérios, só muda se a diferença de espera for superior a 
+// DIFERENÇA_TEMPO_CAIXAS segundos, só muda se não estiver na primeira ou segunda posição da fila e só pode mudar uma vez. o que nos leva a uma outra propriedade necessaria em clients
+// algo como "mudouDeFila"
+// as caixas possuem 3 estados, aberta (recebe cliente e faz pagamentos), em encerramento (não recebe clientes e faz pagamentos) e fechada (não recebe clientes e nao faz pagamentos), 
+// uma propriedade tambem muito importante das caixas será controleManualGerente, ou algo assim, que significa que o status que ela esta foi o gerente que  pos, 
+// e que essa caixa nao será afetada com possiveis alterações automaticas de fecho ou abertura do sistema.
+// o encerramento não aceita mais clientes e faz o pagamento de todos os clientes que já estao na fila, o fecho, encerra totalmente as atividades e faz a redistribuição dos clientes 
+// pelas outras filas, de maneira a manter a menor media possivel de espera em todas as caixas que estejam abertas. essa opção de encerrar forçada só poderá ser realizada pelo menu na pausa 
+// da simulação, e igualmente, uma caixa fechada no menu, não poderá ser aberta de forma automatica, receberá uma flag de controleManualGerente ou algo assim.
+
+// tudo que o utilizador faz no menu do programa vai para um histórico (gravar em *.csv) de cada açao no menu.
+// determinar a memória utilizada pelo programa e determinar a memória desperdiçada
+// memória usada = soma da memória efetivamente ocupada pelas estruturas alocadas
+// memória desperdiçada = capacidade alocada mas não usada em vetores dinâmicos, buckets vazios, histórico com capacidade sobrando, etc.
+// quando a simulação for pausada, poderá se fazer alguma alteraçao e depois voltar para ela ou encerra-la, dessa forma, com o encerramento da simulação se gerará um arquivo chamado Estatisticas_simulação_dia_hora_ano_minuto_segundo.txt com 
+•  Determinar qual a caixa que atendeu mais pessoas; 
+•  Determinar qual a caixa que vendeu mais produtos; 
+•  Listar todas as pessoas atendidas por uma caixa; 
+•  Determinar qual o nome do operador de caixa que atendeu menos pessoas; 
+•  O número de produtos oferecidos e respetivo valor; 
+
+dentro do loop, a ordem das açoes será assim:
+
+Atualizar clientes em compras e identificar os que terminaram.
+Mover clientes concluídos para a melhor fila de caixa.
+Atualizar atendimentos em curso nas caixas.
+Finalizar clientes atendidos e iniciar novos atendimentos.
+Verificar e aplicar oferta por MAX_ESPERA no início do atendimento.
+Avaliar possíveis mudanças de fila entre caixas.
+Verificar abertura automática de novas caixas (MAX_FILA).
+Verificar encerramento automático de caixas (MIN_FILA).
+Gerar novos clientes e inseri-los na lista de compras e na hash.
+Atualizar estatísticas globais e registar eventos.
+
+compras → filas → caixas → oferta → trocas → abrir/fechar → novos clientes → estatísticas
+quando o programa abrir serao sorteados 6 funcionarios que serao associados as caixas 1 até 6 durante aquela simulação, no final, os dados relativos a caixa serão associados
+com o colaborador em serviço naquela caixa, caso a caixa seja fechada, o colaborador ficara inativo juntamente com a caixa, sendo ativo novamente
+com uma nova abertura da caixa. esse time de 6 funcionarios será entendido como equipa de plantão no dia.
+
+
+implementar lista de clientes em todas as caixas
+separar "histórico do utilizador” de “eventos da simulação"
+verificar a questao dos arquivos clientes e produtos estarem sendo escritos sem cabeçalho
+adicionar cliente e produto pede apenas as informações necessarias, o id é automatico
+
+“A simulação foi modelada em ciclos discretos onde cada ciclo representa 1 minuto de tempo simulado.
+Isso permite manter a lógica do sistema simples e consistente, ao mesmo tempo que melhora a leitura dos resultados e o comportamento das filas.
+A velocidade de execução foi desacoplada da escala temporal, permitindo acelerar a simulação sem perder coerência lógica.”
+
+A simulação funciona em ciclos, onde cada ciclo representa um avanço no tempo.
+O sistema utiliza minutos como unidade interna, mas esses minutos são uma abstração e comportam-se mais como segundos reais, permitindo uma simulação mais rápida e dinâmica.
+Em cada ciclo, todo o estado do sistema é atualizado — clientes, filas, caixas e estatísticas.
+O tempo total é acumulado ao longo dos ciclos e depois convertido para dias, horas e minutos para apresentação.
+
+Ao aumentar o número de caixas de 6 para 7, mantendo a mesma taxa de entrada de clientes, o sistema apresentou uma melhoria significativa. O tempo médio de espera desceu de valores críticos para cerca de 23 minutos e deixou de haver produtos oferecidos. Isso mostra que a simulação é sensível à capacidade de atendimento e permite avaliar o impacto direto da abertura de novas caixas.
+
+Para tornar a entrada de clientes mais realista e evitar crescimento excessivo das filas num único instante, foi adotada uma regra complementar de chegada estocástica: em cada ciclo de simulação de 1 minuto, existe 25% de probabilidade de ocorrer entrada de novos clientes. Quando essa entrada ocorre, o número de clientes gerados é sorteado no intervalo configurado entre 0 e 3 clientes.
+
+Atendente com menor numero de clientes nao presente nas caixas
+
+
+
+
+o supermercado preciso ter horario de entradda e saida?
+hora de abertura e hora de fecho
+120 sao segundos? 
+validaçoes de entrada em clientes e produtos
+busca de cliente
+ 
+
+
+
+

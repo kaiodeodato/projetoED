@@ -1,0 +1,102 @@
+id     nome                       preco   tempoDeProcura  tempoDePagamento
+100001 Queijo Parmesao Italia     8.28    17              1              
+100002 Presunto Iberico Espanha   10.20   14              2              
+100003 Azeite Grego Premium       8.64    19              2              
+100004 Chocolate Suico            6.96    11              3              
+100005 Cafe Colombia              7.68    16              1              
+100006 Massa Italiana Premium     4.68    9               2              
+100007 Molho Teriyaki Japao       5.04    13              2              
+100008 Arroz Basmati India        4.32    8               2              
+100009 Curry Indiano              3.36    12              1              
+100010 Bolachas                   1.92    7               1              
+100011 Batatas                    2.64    18              2              
+100012 Cebolas                    2.28    15              1              
+100013 Tomates                    3.36    20              1              
+100014 Alface                     1.80    10              1              
+100015 Cenouras                   2.04    13              2              
+100016 Frango Inteiro             7.08    19              2              
+100017 Carne Picada               7.80    16              3              
+100018 Peixe Fresco               8.64    20              2              
+100019 Bananas                    2.39    9               1              
+100020 Macas                      2.88    12              1              
+100021 Ovos Duzia                 3.12    6               3              
+100022 Queijo Fatiado             3.84    11              3              
+100023 Presunto                   4.20    14              1              
+100024 Atum Lata                  1.56    5               2              
+100025 Sardinha Lata              1.32    8               2              
+100026 Sumos Pack                 3.48    10              3              
+100027 Cereais                    3.72    17              3              
+100028 Chocolate Barra            1.80    6               2              
+100029 Cafe                       5.04    13              3              
+100030 Acucar                     1.68    7               3              
+100031 Sal                        1.08    5               2              
+100032 Azeite                     8.16    18              3              
+100033 Vinagre                    1.44    9               2              
+100034 Ketchup                    2.52    8               2              
+100035 Maionese                   2.76    11              2              
+100036 Detergente                 4.56    15              3              
+100037 Amaciador                  4.32    12              3              
+100038 Papel Higienico            5.40    20              3              
+100039 Guardanapos                2.16    6               2              
+100040 Esponja                    1.44    5               2              
+100041 Shampoo                    5.88    16              3              
+100042 Gel Banho                  4.44    14              3              
+100043 Pasta Dentes               3.00    7               2              
+100044 Escova Dentes              2.64    9               2              
+100045 Agua Mineral Pack          4.20    10              3              
+100046 Pizza Congelada            5.76    17              1              
+100047 Legumes Congelados         3.48    13              1              
+100048 Gelado                     6.60    18              1              
+100049 Uvas                       3.24    12              3              
+100050 Laranjas                   2.52    15              2              
+100051 Arroz                      2.16    8               3              
+100052 Massa                      1.80    6               3              
+100053 Feijao Lata                2.04    7               2              
+100054 Grao Lata                  1.92    9               2              
+100055 Milho Lata                 1.68    5               2              
+100056 Iogurte Natural            2.64    11              2              
+100057 Leite Chocolate            2.28    10              3              
+100058 Manteiga                   3.36    8               1              
+100059 Fiambre                    3.72    14              3              
+100060 Salsichas                  3.12    12              3              
+100061 Leite                      1.32    6               3              
+100062 Iogurte Pack               3.00    9               3              
+100063 Pao Integral               2.28    7               1              
+100064 Croissants                 2.64    10              1              
+100065 Biscoitos                  2.04    6               2              
+100066 Mel                        4.68    15              3              
+100067 Compota                    3.12    8               3              
+100068 Margarina                  2.52    7               3              
+100069 Queijo Curado              5.40    13              2              
+100070 Queijo Fresco              3.36    11              3              
+100071 Peru Fatiado               4.08    14              1              
+100072 Bacon                      4.68    16              1              
+100073 Hamburguers                5.76    18              1              
+100074 Nuggets Frango             5.04    15              3              
+100075 Sopa Instantanea           1.80    5               2              
+100076 Massa Instantanea          1.92    6               2              
+100077 Refrigerante               2.64    9               2              
+100078 Agua Tonica                2.40    7               1              
+100079 Cha                        2.16    8               2              
+100080 Cafe Soluvel               4.56    10              3              
+100081 Bolos                      4.20    12              3              
+100082 Donuts                     3.48    9               3              
+100083 Muffins                    3.84    11              1              
+100084 Chocolate Tablete          2.40    6               2              
+100085 Chiclete                   1.44    5               2              
+100086 Pastilhas                  1.32    5               2              
+100087 Frutos Secos               4.32    13              3              
+100088 Amendoins                  2.88    8               3              
+100089 Nozes                      4.80    14              3              
+100090 Avelas                     4.56    12              3              
+100091 Detergente Roupa           6.60    17              3              
+100092 Limpa Vidros               3.48    9               2              
+100093 Desinfetante               3.84    10              3              
+100094 Sabao                      1.80    6               2              
+100095 Gel Desinfetante           3.24    8               2              
+100096 Toalhitas                  2.76    7               1              
+100097 Papel Cozinha              3.72    11              1              
+100098 Sacos Lixo                 3.36    9               3              
+100099 Esfregona                  5.04    12              3              
+100100 Balde                      4.68    10              3              
+100101 orange                     2.00    14              3              

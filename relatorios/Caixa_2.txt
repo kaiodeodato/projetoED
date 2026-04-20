@@ -1,0 +1,103 @@
+Caixa 2
+Codigo do atendente: 357912
+Nome do atendente: Felipe Souza Ribeiro
+
+Pessoas atendidas:
+  1 - Joao Rocha Lima
+  9 - Raúl Castro
+  45 - David Pérez
+  41 - Zenaide Batista Rocha
+  50 - Patricia Andrade Rocha
+  64 - Joao Rocha Lima
+  44 - Pietro Silva Costa
+  69 - Vitor Rocha Mendes
+  74 - Diogo Freitas Costa
+  71 - Zenaide Freitas Mendes
+  77 - Hao Jin
+  48 - Jian Li
+  83 - Nicolas Rocha Mendes
+  66 - Caio Freitas Costa
+  85 - Elisa Batista Mendes
+  89 - Bruno Santos Vieira
+  67 - Marcia Batista Rocha
+  94 - Valeria Batista Costa
+  119 - Lei Pan
+  105 - Yong Yang
+  128 - Bruna Freitas Costa
+  113 - Daniela Duarte Costa
+  117 - Hao Jin
+  129 - Juan Molina
+  137 - Helena Duarte Correia
+  146 - Caio Pereira Lima
+  149 - Afonso Rocha Costa
+  150 - Elisa Freitas Rocha
+  148 - Jesús Ruiz
+  169 - Wagner Rocha Mendes
+  171 - Arthur Batista Rocha
+  164 - Jian Deng
+  174 - Eduardo Figueiredo Campos
+  156 - Vitor Rocha Mendes
+  155 - Jie Ma
+  196 - Renato Freitas Rocha
+  209 - Daniela Duarte Costa
+  211 - Lei Liu
+  219 - Guillermo Gómez
+  200 - Zenaide Rocha Costa
+  213 - Kleber Andrade Costa
+  238 - Eduardo Fuentes
+  245 - Marcelo Rocha Costa
+  247 - Larissa Freitas Mendes
+  241 - Mario Alonso
+  246 - Cesar Duarte Costa
+  243 - Quirino Silva Costa
+  250 - Tiago Monteiro Cardoso
+  251 - Karen Bastos Rocha
+  235 - Joaquín Medina
+  239 - Gabriela Santos Moreira
+  244 - Ana Silva Pereira
+  237 - Larissa Duarte Mendes
+  255 - Heitor Silva Montes
+  272 - Samuel Rocha Costa
+  276 - Bo Ma
+  279 - Rafael Delgado
+  267 - Bruno Duarte Lima
+  281 - Jun Tang
+  289 - Zuleica Rocha Costa
+  288 - Raquel Freitas Rocha
+  282 - Xin Zeng
+  293 - Lin He
+  291 - Daniela Faria Moreira
+  305 - Ivan Costa Mendes
+  301 - Davi Silva Costa
+  308 - Helena Carvalho Mendes
+  297 - Joaquín Medina
+  294 - Alberto Vega
+  307 - Guillermo Carrasco
+  322 - Ming Gao
+  338 - Otavio Andrade Rocha
+  349 - Paula Batista Mendes
+  352 - Peng Feng
+  354 - Paula Duarte Costa
+  344 - Hao Gao
+  367 - Sergio Delgado
+  363 - Igor Batista Nunes
+  342 - Zenaide Batista Rocha
+  353 - Paulo Mendes Rocha
+  371 - Tatiana Duarte Lima
+  365 - Wei Zhang
+  373 - james
+  387 - Heitor Rocha Mendes
+  401 - Bruno Santos Vieira
+  423 - Nicolás Peña
+  409 - Patricia Andrade Rocha
+  433 - Alejandro García
+  422 - Víctor Carrasco
+  432 - Larissa Batista Rocha
+  443 - Jesús Ruiz
+  429 - Marcia Batista Rocha
+
+Clientes atendidos: 92
+Produtos vendidos: 485
+Valor vendido: 1769.49
+Produtos oferecidos: 0
+Valor oferecido: 0.00

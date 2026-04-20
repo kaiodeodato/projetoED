@@ -1,0 +1,724 @@
+#include <stdio.h>
+#include <conio.h>
+#include <windows.h>
+#include "simulacao.h"
+#include "clientes.h"
+#include "caixas.h"
+#include "filas.h"
+#include "listaDeCompras.h"
+#include "estatisticas.h"
+#include "historico.h"
+#include "define.h"
+#include "uteis.h"
+#include "hashClientes.h"
+
+void inicializarSimulacao(SISTEMA *sistema) {
+    if (sistema == NULL) {
+        return;
+    }
+
+    sistema->tempoAtual = 0;
+    sistema->estadoSimulacao = SIMULACAO_PARADA;
+    sistema->proximoIdClienteGerado = 1;
+    sistema->nCaixasAbertas = contarCaixasAbertas(sistema);
+
+    inicializarEstatisticas(&sistema->estatisticas);
+
+    adicionarLog(
+        &sistema->logs,
+        sistema->tempoAtual,
+        "SIMULACAO",
+        "Simulacao inicializada"
+    );
+}
+
+void executarSimulacao(SISTEMA *sistema) {
+    int passoLoading = 0;
+    int estavaPausada;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    if (sistema->estadoSimulacao == SIMULACAO_ENCERRADA) {
+        return;
+    }
+
+    estavaPausada = (sistema->estadoSimulacao == SIMULACAO_PAUSADA);
+
+    sistema->estadoSimulacao = SIMULACAO_ATIVA;
+    sistema->ciclosDesdeUltimoRefresh = 0;
+
+    if (!estavaPausada) {
+        adicionarLog(
+            &sistema->logs,
+            sistema->tempoAtual,
+            "SIMULACAO",
+            "Simulacao iniciada"
+        );
+    }
+
+    mostrarPainelSimulacao(sistema);
+    printf("\nLoading: %c", obterCharLoading(passoLoading));
+    printf("\nPrima 'P' para pausar e voltar ao menu.\n");
+
+    while (sistema->estadoSimulacao == SIMULACAO_ATIVA) {
+        cicloSimulacao(sistema);
+        sistema->ciclosDesdeUltimoRefresh++;
+
+        if (sistema->ciclosDesdeUltimoRefresh >= CICLOS_POR_REFRESH_TELA) {
+            mostrarPainelSimulacao(sistema);
+
+            passoLoading++;
+            if (passoLoading >= 4) {
+                passoLoading = 0;
+            }
+
+            printf("\nLoading: %c", obterCharLoading(passoLoading));
+            printf("\nPrima 'P' para pausar e voltar ao menu.\n");
+
+            sistema->ciclosDesdeUltimoRefresh = 0;
+        }
+
+        processarTeclaSimulacao(sistema);
+        Sleep(obterDelayPorVelocidade(sistema->velocidadeSimulacao));
+    }
+}
+
+void cicloSimulacao(SISTEMA *sistema) {
+    if (sistema == NULL) {
+        return;
+    }
+
+    if (sistema->estadoSimulacao != SIMULACAO_ATIVA) {
+        return;
+    }
+
+    atualizarClientesEmComprasSimulacao(sistema);
+    moverClientesParaFilas(sistema);
+    atualizarCaixasSimulacao(sistema);
+    finalizarAtendimentosSimulacao(sistema);
+    iniciarNovosAtendimentosSimulacao(sistema);
+    aplicarOfertasSimulacao(sistema);
+    avaliarMudancasFilaSimulacao(sistema);
+    {
+        int caixasAbertasAntes = contarCaixasAbertas(sistema);
+
+        verificarAberturaCaixasSimulacao(sistema);
+
+        if (contarCaixasAbertas(sistema) == caixasAbertasAntes &&
+            contarCaixasEmEncerramento(sistema) == 0) {
+            verificarEncerramentoCaixasSimulacao(sistema);
+        }
+    }
+    gerarNovosClientesSimulacao(sistema);
+    atualizarEstatisticasSimulacao(sistema);
+
+    sistema->tempoAtual += CICLO_SIMULACAO_MINUTOS;
+}
+
+void atualizarClientesEmComprasSimulacao(SISTEMA *sistema) {
+    if (sistema == NULL) {
+        return;
+    }
+
+    atualizarClientesEmCompras(&sistema->clientesComprando, sistema->tempoAtual);
+}
+
+void moverClientesParaFilas(SISTEMA *sistema) {
+    if (sistema == NULL) {
+        return;
+    }
+
+    processarClientesTerminadosEmCompras(sistema);
+}
+
+void atualizarCaixasSimulacao(SISTEMA *sistema) {
+    int i;
+
+    if (sistema == NULL || sistema->caixas == NULL) {
+        return;
+    }
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        CAIXA *caixa = &sistema->caixas[i];
+
+        if (caixa->clienteAtual != NULL) {
+            atualizarTempoAtendimentoCliente(caixa->clienteAtual);
+        }
+    }
+}
+
+void finalizarAtendimentosSimulacao(SISTEMA *sistema) {
+    int i;
+
+    if (sistema == NULL || sistema->caixas == NULL) {
+        return;
+    }
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        finalizarAtendimentoSeConcluido(sistema, &sistema->caixas[i]);
+    }
+}
+
+void iniciarNovosAtendimentosSimulacao(SISTEMA *sistema) {
+    int i;
+
+    if (sistema == NULL || sistema->caixas == NULL) {
+        return;
+    }
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        iniciarAtendimentoSeNecessario(sistema, &sistema->caixas[i]);
+    }
+}
+
+void aplicarOfertasSimulacao(SISTEMA *sistema) {
+    int i;
+
+    if (sistema == NULL || sistema->caixas == NULL) {
+        return;
+    }
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        CLIENTE *clienteAtual = sistema->caixas[i].clienteAtual;
+
+        if (clienteAtual == NULL) {
+            continue;
+        }
+
+        if (clienteTemDireitoAOferta(sistema, clienteAtual, clienteAtual->instanteInicioAtendimento)) {
+            aplicarOfertaCliente(clienteAtual);
+        }
+    }
+}
+
+void avaliarMudancasFilaSimulacao(SISTEMA *sistema) {
+    int i;
+
+    if (sistema == NULL || sistema->caixas == NULL) {
+        return;
+    }
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        CAIXA *caixaOrigem = &sistema->caixas[i];
+        CAIXA *caixaDestino;
+        int posicao;
+
+        if (!caixaEstaAberta(caixaOrigem)) {
+            continue;
+        }
+
+        if (obterTamanhoFila(&caixaOrigem->fila) < 3) {
+            continue;
+        }
+
+        caixaDestino = obterCaixaDestinoMudanca(sistema, caixaOrigem);
+        if (caixaDestino == NULL) {
+            continue;
+        }
+
+        for (posicao = 3; posicao <= obterTamanhoFila(&caixaOrigem->fila); posicao++) {
+            CLIENTE *cliente = obterClienteNaPosicaoFila(&caixaOrigem->fila, posicao);
+
+            if (cliente == NULL) {
+                continue;
+            }
+
+            if (clienteJaMudouDeFila(cliente)) {
+                continue;
+            }
+
+            if (tentarMoverClienteDeFila(sistema, caixaOrigem, cliente)) {
+                break;
+            }
+        }
+    }
+}
+
+void verificarAberturaCaixasSimulacao(SISTEMA *sistema) {
+    float mediaClientes;
+    CAIXA *caixa;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    mediaClientes = calcularMediaClientesPorCaixaAberta(sistema);
+
+    if (mediaClientes <= sistema->config.MAX_FILA &&
+        !existeCaixaComTempoAcimaDoLimite(sistema)) {
+        return;
+    }
+
+    caixa = obterCaixaParaAberturaAutomatica(sistema);
+    if (caixa == NULL) {
+        return;
+    }
+
+    if (abrirCaixa(sistema, caixa->id, CAIXA_SEM_CONTROLO_MANUAL)) {
+        registarAberturaAutomatica(&sistema->estatisticas);
+    }
+}
+
+void verificarEncerramentoCaixasSimulacao(SISTEMA *sistema) {
+    float mediaClientes;
+    CAIXA *caixa;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    if (contarCaixasAbertas(sistema) <= 1) {
+        return;
+    }
+
+    mediaClientes = calcularMediaClientesPorCaixaAberta(sistema);
+
+    if (mediaClientes > sistema->config.MIN_FILA - 1) {
+        return;
+    }
+
+    caixa = obterCaixaParaEncerramentoAutomatico(sistema);
+    if (caixa == NULL) {
+        return;
+    }
+
+    if (encerrarCaixa(sistema, caixa->id, CAIXA_SEM_CONTROLO_MANUAL)) {
+        registarEncerramentoAutomatico(&sistema->estatisticas);
+    }
+}
+
+void gerarNovosClientesSimulacao(SISTEMA *sistema) {
+    int totalGerados;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    totalGerados = gerarNovosClientes(sistema);
+}
+
+void atualizarEstatisticasSimulacao(SISTEMA *sistema) {
+    if (sistema == NULL) {
+        return;
+    }
+
+    sistema->estatisticas.tempoSimulacao = sistema->tempoAtual;
+    calcularTempoMedioEspera(&sistema->estatisticas);
+    atualizarEstatisticasCaixas(sistema);
+    determinarOperadorMenosAtendimentos(sistema);
+}
+
+void pausarSimulacao(SISTEMA *sistema) {
+    if (sistema == NULL) {
+        return;
+    }
+
+    sistema->estadoSimulacao = SIMULACAO_PAUSADA;
+
+    adicionarLog(
+        &sistema->logs,
+        sistema->tempoAtual,
+        "SIMULACAO",
+        "Simulacao pausada"
+    );
+}
+
+void retomarSimulacao(SISTEMA *sistema) {
+    if (sistema == NULL) {
+        return;
+    }
+
+    adicionarLog(
+        &sistema->logs,
+        sistema->tempoAtual,
+        "SIMULACAO",
+        "Simulacao retomada"
+    );
+}
+
+void encerrarSimulacao(SISTEMA *sistema) {
+    if (sistema == NULL) {
+        return;
+    }
+
+    sistema->estadoSimulacao = SIMULACAO_ENCERRADA;
+
+    adicionarLog(
+        &sistema->logs,
+        sistema->tempoAtual,
+        "SIMULACAO",
+        "Simulacao encerrada"
+    );
+}
+
+void processarClientesTerminadosEmCompras(SISTEMA *sistema) {
+    CLIENTE *cliente;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    cliente = obterPrimeiroClienteListaCompras(&sistema->clientesComprando);
+
+    while (cliente != NULL && clienteTerminouComprasLista(cliente, sistema->tempoAtual)) {
+        cliente = removerPrimeiroClienteListaCompras(&sistema->clientesComprando);
+
+        if (cliente == NULL) {
+            break;
+        }
+
+        if (!encaminharClienteParaMelhorCaixa(sistema, cliente)) {
+            inserirClienteOrdenadoListaCompras(&sistema->clientesComprando, cliente);
+            break;
+        }
+
+        cliente = obterPrimeiroClienteListaCompras(&sistema->clientesComprando);
+    }
+}
+
+CAIXA *obterCaixaDestinoMudanca(SISTEMA *sistema, const CAIXA *caixaAtual) {
+    int i;
+    CAIXA *melhorCaixa = NULL;
+    int tempoAtualCaixa;
+    int melhorTempo = 0;
+
+    if (sistema == NULL || caixaAtual == NULL || sistema->caixas == NULL) {
+        return NULL;
+    }
+
+    tempoAtualCaixa = calcularTempoEstimadoCaixa(caixaAtual);
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        CAIXA *caixa = &sistema->caixas[i];
+        int tempoCaixa;
+
+        if (caixa->id == caixaAtual->id) {
+            continue;
+        }
+
+        if (!caixaAceitaNovosClientes(caixa)) {
+            continue;
+        }
+
+        tempoCaixa = calcularTempoEstimadoCaixa(caixa);
+
+        if (tempoAtualCaixa - tempoCaixa <= sistema->config.DIFERENCA_TEMPO_CAIXAS) {
+            continue;
+        }
+
+        if (melhorCaixa == NULL || tempoCaixa < melhorTempo) {
+            melhorCaixa = caixa;
+            melhorTempo = tempoCaixa;
+        }
+    }
+
+    return melhorCaixa;
+}
+
+CLIENTE *obterClienteNaPosicaoFila(const FILA *fila, int posicao) {
+    ELEMENTO *atual;
+    int indice = 1;
+
+    if (fila == NULL || posicao <= 0) {
+        return NULL;
+    }
+
+    atual = fila->inicio;
+
+    while (atual != NULL) {
+        if (indice == posicao) {
+            return atual->cliente;
+        }
+
+        atual = atual->seguinte;
+        indice++;
+    }
+
+    return NULL;
+}
+
+int tentarMoverClienteDeFila(SISTEMA *sistema, CAIXA *caixaOrigem, CLIENTE *cliente) {
+    CAIXA *caixaDestino;
+
+    if (sistema == NULL || caixaOrigem == NULL || cliente == NULL) {
+        return 0;
+    }
+
+    caixaDestino = obterCaixaDestinoMudanca(sistema, caixaOrigem);
+    if (caixaDestino == NULL) {
+        return 0;
+    }
+
+    if (!removerClienteDaFilaPorId(&caixaOrigem->fila, cliente->id)) {
+        return 0;
+    }
+
+    if (!adicionarClienteNaCaixa(caixaDestino, cliente, sistema->tempoAtual)) {
+        enfileirarCliente(&caixaOrigem->fila, cliente);
+        return 0;
+    }
+
+    marcarClienteMudouDeFila(cliente);
+    registarMudancaFila(&sistema->estatisticas);
+
+    return 1;
+}
+
+CAIXA *obterCaixaParaAberturaAutomatica(SISTEMA *sistema) {
+    int i;
+
+    if (sistema == NULL || sistema->caixas == NULL) {
+        return NULL;
+    }
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        CAIXA *caixa = &sistema->caixas[i];
+
+        if (!caixaEstaFechada(caixa)) {
+            continue;
+        }
+
+        if (caixa->controloManualGerente == CAIXA_COM_CONTROLO_MANUAL) {
+            continue;
+        }
+
+        if (caixa->bloqueadaAutomaticamente == CAIXA_BLOQUEADA_AUTOMATICAMENTE) {
+            continue;
+        }
+
+        return caixa;
+    }
+
+    return NULL;
+}
+
+CAIXA *obterCaixaParaEncerramentoAutomatico(SISTEMA *sistema) {
+    int i;
+    CAIXA *melhor = NULL;
+    int menorQuantidade = 0;
+
+    if (sistema == NULL || sistema->caixas == NULL) {
+        return NULL;
+    }
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        CAIXA *caixa = &sistema->caixas[i];
+        int quantidade;
+
+        if (!caixaEstaAberta(caixa)) {
+            continue;
+        }
+
+        if (caixa->controloManualGerente == CAIXA_COM_CONTROLO_MANUAL) {
+            continue;
+        }
+
+        quantidade = obterNumeroClientesCaixa(caixa);
+
+        if (melhor == NULL || quantidade < menorQuantidade) {
+            melhor = caixa;
+            menorQuantidade = quantidade;
+        }
+    }
+
+    return melhor;
+}
+
+void mostrarPainelSimulacao(const SISTEMA *sistema) {
+    int i;
+    int totalMinutos;
+    int dias;
+    int horas;
+    int minutos;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    limparTela();
+
+    totalMinutos = sistema->tempoAtual;
+    dias = totalMinutos / 1440;
+    horas = (totalMinutos % 1440) / 60;
+    minutos = totalMinutos % 60;
+
+    printf("%s", LINHA_SEPARADORA);
+    printf("SIMULACAO EM EXECUCAO\n");
+    printf("%s", LINHA_SEPARADORA);
+
+    printf(
+        "Tempo de simulacao: %d min (%d dia(s), %02d:%02d)\n",
+        sistema->tempoAtual,
+        dias,
+        horas,
+        minutos
+    );
+
+    printf("\nESTADO GERAL DO SISTEMA\n");
+    printf("%s", LINHA_SEPARADORA);
+
+    printf("Velocidade:              %dx\n", sistema->velocidadeSimulacao);
+    printf("Estado da simulacao:     %d\n", sistema->estadoSimulacao);
+    printf("Clientes em compras:     %d\n", sistema->clientesComprando.tamanho);
+    printf("Clientes ativos (hash):  %d\n", sistema->clientesHash.nElementos);
+    printf("Caixas abertas:          %d\n", sistema->nCaixasAbertas);
+
+    printf("\nESTATISTICAS\n");
+    printf("%s", LINHA_SEPARADORA);
+
+    printf("Clientes gerados:        %d\n", sistema->estatisticas.totalClientesGerados);
+    printf("Clientes atendidos:      %d\n", sistema->estatisticas.totalClientesAtendidos);
+    printf("Produtos oferecidos:     %d\n", sistema->estatisticas.totalProdutosOferecidos);
+    printf("Tempo medio de espera:   %.2f min\n", sistema->estatisticas.tempoMedioEspera);
+
+    printf("\nESTADO DAS CAIXAS\n");
+    printf("%s", LINHA_SEPARADORA);
+
+    if (sistema->caixas == NULL) {
+        return;
+    }
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        const CAIXA *caixa = &sistema->caixas[i];
+
+        printf(
+            "Caixa %d | Estado=%d | Abertura=%s | Fila=%d | Atendimento=%s | Atendidos=%d\n",
+            caixa->id,
+            caixa->estado,
+            obterTextoControloCaixa(caixa),
+            caixa->fila.tamanho,
+            caixa->clienteAtual != NULL ? "SIM" : "NAO",
+            caixa->clientesAtendidos
+        );
+    }
+}
+
+void processarTeclaSimulacao(SISTEMA *sistema) {
+    char tecla;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    if (!_kbhit()) {
+        return;
+    }
+
+    tecla = (char)_getch();
+
+    if (tecla == 'p' || tecla == 'P') {
+        pausarSimulacao(sistema);
+    }
+}
+
+char obterCharLoading(int passo) {
+    switch (passo) {
+        case 0: return '|';
+        case 1: return '/';
+        case 2: return '-';
+        case 3: return '\\';
+        default: return '|';
+    }
+}
+
+int obterDelayPorVelocidade(int velocidade) {
+    int delay;
+
+    if (velocidade <= 0) {
+        return SLEEP_SIMULACAO_BASE_MS;
+    }
+
+    delay = SLEEP_SIMULACAO_BASE_MS / velocidade;
+
+    if (delay < 1) {
+        delay = 1;
+    }
+
+    return delay;
+}
+
+void reinicializarEstadoSimulacao(SISTEMA *sistema) {
+    int i;
+    BUCKET *bucketAtual;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    bucketAtual = sistema->clientesHash.inicio;
+    while (bucketAtual != NULL) {
+        HASHNODE *noAtual = bucketAtual->clientes;
+
+        while (noAtual != NULL) {
+            if (noAtual->cliente != NULL) {
+                libertarCliente(noAtual->cliente);
+                noAtual->cliente = NULL;
+            }
+
+            noAtual = noAtual->prox;
+        }
+
+        bucketAtual = bucketAtual->prox;
+    }
+
+    libertarHash(&sistema->clientesHash);
+    inicializarHash(&sistema->clientesHash, HASH_N_BUCKETS_INICIAL);
+
+    libertarListaClientesComprando(&sistema->clientesComprando);
+    inicializarListaClientesComprando(&sistema->clientesComprando);
+
+    if (sistema->caixas != NULL) {
+        for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+            libertarFila(&sistema->caixas[i].fila);
+            inicializarFila(&sistema->caixas[i].fila);
+
+            sistema->caixas[i].clienteAtual = NULL;
+            sistema->caixas[i].tempoTotalEstimadoFila = 0;
+            sistema->caixas[i].clientesAtendidos = 0;
+            sistema->caixas[i].totalProdutosVendidos = 0;
+            sistema->caixas[i].totalValorVendido = 0.0f;
+            sistema->caixas[i].totalProdutosOferecidos = 0;
+            sistema->caixas[i].totalValorOferecido = 0.0f;
+            sistema->caixas[i].controloManualGerente = CAIXA_SEM_CONTROLO_MANUAL;
+            sistema->caixas[i].bloqueadaAutomaticamente = CAIXA_NAO_BLOQUEADA_AUTOMATICAMENTE;
+            sistema->caixas[i].estado = CAIXA_FECHADA;
+
+            while (sistema->caixas[i].historicoClientes.inicio != NULL) {
+                NO_HISTORICO_CLIENTE *tmp = sistema->caixas[i].historicoClientes.inicio;
+                sistema->caixas[i].historicoClientes.inicio = tmp->seguinte;
+
+                if (tmp->cliente != NULL) {
+                    libertarCliente(tmp->cliente);
+                }
+
+                free(tmp);
+            }
+
+            sistema->caixas[i].historicoClientes.fim = NULL;
+            sistema->caixas[i].historicoClientes.tamanho = 0;
+        }
+    }
+
+    sistema->nCaixasAbertas = 0;
+
+    for (i = 0; i < N_CAIXAS_INICIALMENTE_ABERTAS && i < sistema->config.N_CAIXAS; i++) {
+        sistema->caixas[i].estado = CAIXA_ABERTA;
+        sistema->nCaixasAbertas++;
+        ativarOperadorDaCaixa(sistema, i);
+    }
+
+    for (; i < sistema->config.N_CAIXAS; i++) {
+        desativarOperadorDaCaixa(sistema, i);
+    }
+
+    sistema->tempoAtual = 0;
+    sistema->estadoSimulacao = SIMULACAO_PARADA;
+    sistema->proximoIdClienteGerado = 1;
+    sistema->ciclosDesdeUltimoRefresh = 0;
+
+    inicializarEstatisticas(&sistema->estatisticas);
+
+    adicionarLog(&sistema->logs, 0, "SIMULACAO", "Simulacao reinicializada");
+}

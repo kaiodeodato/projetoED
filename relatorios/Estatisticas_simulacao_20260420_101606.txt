@@ -1,0 +1,16 @@
+Tempo de simulacao: 2051
+Clientes gerados: 478
+Clientes atendidos: 452
+Produtos vendidos: 2490
+Valor total vendido: 9154.98
+Produtos oferecidos: 0
+Valor total oferecido: 0.00
+Receita liquida: 9154.98
+Mudancas de fila: 36
+Aberturas automaticas: 274
+Encerramentos automaticos: 270
+Soma tempos espera: 3599.00
+Tempo medio espera: 7.96
+Caixa com mais clientes: 5
+Caixa com mais produtos: 0
+Operador com menos atendimentos: 246801 - Renata Moura Delgado (137 atendimentos)

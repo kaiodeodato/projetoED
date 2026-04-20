@@ -1,0 +1,30 @@
+Caixa 1
+Codigo do atendente: 246801
+Nome do atendente: Renata Moura Delgado
+
+Pessoas atendidas:
+  8 - Fabiana Freitas Rocha
+  15 - Feng Xu
+  21 - Félix Castro
+  29 - Larissa Batista Rocha
+  12 - Rodrigo Vega
+  30 - Zenaide Rocha Costa
+  20 - Isabela Duarte Costa
+  33 - Sofia Batista Tavares
+  46 - Afonso Rocha Costa
+  42 - Cristian Guerrero
+  53 - Elisa Freitas Rocha
+  80 - Juliano Silva Rocha
+  81 - Tiago Monteiro Cardoso
+  51 - Zuleica Andrade Costa
+  88 - Iván Vázquez
+  90 - Oscar Duarte Mendes
+  82 - Juliano Rocha Alves
+  95 - Jun Luo
+  96 - Jonas Rocha Lima
+
+Clientes atendidos: 19
+Produtos vendidos: 96
+Valor vendido: 355.50
+Produtos oferecidos: 0
+Valor oferecido: 0.00
