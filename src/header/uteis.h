@@ -18,5 +18,6 @@ int compararStrings(const char *a, const char *b);
 void copiarStringSeguro(char *destino, const char *origem, int tamanho);
 int stringVazia(const char *str);
 void gerarNomeFicheiroComTimestamp(char *destino, int tamanho, const char *prefixo, const char *extensao);
+void configurarAmbienteUTF8();
 
 #endif

@@ -31,6 +31,7 @@ void libertarBases(SISTEMA *sistema);
 void gerarSaidasFinais(SISTEMA *sistema);
 
 int main(void) {
+    configurarAmbienteUTF8();
     SISTEMA sistema;
 
     srand((unsigned int)time(NULL));

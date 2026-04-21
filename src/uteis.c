@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "uteis.h"
+#include <locale.h>
 
 void limparBufferEntrada(void) {
     int c;
@@ -171,4 +172,9 @@ void gerarNomeFicheiroComTimestamp(char *destino, int tamanho, const char *prefi
 
     gerarTimestampFormatado(timestamp, sizeof(timestamp));
     snprintf(destino, tamanho, "%s%s%s", prefixo, timestamp, extensao);
+}
+
+void configurarAmbienteUTF8() {
+        system("chcp 65001 > nul");
+        setlocale(LC_ALL, "pt_PT.UTF-8");
 }

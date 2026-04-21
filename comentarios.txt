@@ -94,13 +94,37 @@ Atendente com menor numero de clientes nao presente nas caixas
 
 
 
-o supermercado preciso ter horario de entradda e saida?
-hora de abertura e hora de fecho
-120 sao segundos? 
+
 validaçoes de entrada em clientes e produtos
 busca de cliente
  
 
 
 
+as propriedades em config abaixo foram retiradas pois sao desnecessárias devido a arquitetura do problema
+o preço de cada produto esta no arquivo produtos e o tempo de atendimento tambem, bem como o tempo de procura
+de cada produto.
 
+MAX_PRECO 40 
+TEMPO_ATENDIMENTO_PRODUTO  6 
+
+No trabalho foram tomas as seguintes decisões de projeto importantes para a arquitetura do
+programa e para o funcionamento do mesmo:
+
+- o fluxo de trabalho é continuo, é um supermercado 24/7, como os am/pm.
+- a unidade de medida minima é o minuto, o tempo de procura, o tempo de pagamento e o limite de tempo para ganho de oferta, todos são minutos.
+- o tempo máximo para ganho de prenda foi reduzido de 120 para 30, isso foi feito após muitos testes em diferentes condições de fluxo de entrada de clientes
+medias maiores ou menores de tempode de busca e pagamento de produtos e outras metricas importantes para o fuuncionamento fluido do sistema. esse acabou sendo um
+tempo muito bom do ponto de vista da simulação, onde podemos ver um bom fluxo de clientes mais ao mesmo tempo um fornecimento de gifts relativamente baixo.
+- de 1 em 1 ciclo (1 segundo real) é possivel aumentar a velocidade da simulão em até 500x, isso permitiu um melhor controle de diferentes cenários e ampliou a capacidade de analise
+de testes.
+- a cada cliente que entra no supermercado é gerado uma quantidade de produtos, de 1 até 20 (podendo ser alterado no arquivo config), esses produtos sao escolhidos aleatoriamente do 
+arquivo produtos, já alocado em memória, onde cada produto possui um tempo de procura e um tempo de pagamento, definindo o tempo total que o cliente passara dentro da loja e o tempo total que 
+o cliente precisa para pagar todos os produtos.
+- no inicio da simulação, são escolhidos aleatoriamente 6 colaboradores que serao responsaveis cada um por uma das 6 caixas, no fim da simulação é possivel ver as kpi's de cada um bem como 
+a lista de clientes atendidos.
+- foi implementado um dashboard de acompanhamento do supermercado onde se pode ver em tempo real o que se passa na loja, tanto em relação a clientes entrando, como comprando e pagamendo, 
+juntamente com alguns outros indicadores importantes, como tamanho de filas, quantidade de produtos ofertados, valor total ofertado e status das caixas.
+- outra decisão de projeto foi ordenar as listas de produtos de cada cliente, de maneira a que sempre que haja uma oferta de produto o produto mais barato seja ofertado.
+- é possivel listar os clientes que estao a comprar na loja no momento
+- é possivel fazer a busca de clientes por id, e essa busca no mostra algumas informações do cliente como nome e quantidade de produtos bem como a lista inteira de compras do cliente

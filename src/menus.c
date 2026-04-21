@@ -11,6 +11,7 @@
 #include "define.h"
 #include "clientes.h"
 #include "produtos.h"
+#include "hashClientes.h"
 
 void mostrarMenuPrincipal() {
     limparTela();
@@ -81,6 +82,8 @@ void mostrarMenuGestao() {
     printf("4. Fechar caixa manualmente\n");
     printf("5. Mostrar estado resumido\n");
     printf("6. Alterar velocidade da simulacao\n");
+    printf("7. Pesquisar cliente ativo\n");
+    printf("8. Listar clientes a comprar\n");
     printf("0. Voltar\n");
     printf("%s", LINHA_SEPARADORA);
 }
@@ -308,6 +311,91 @@ void mostrarEstadoResumidoSistema(const SISTEMA *sistema) {
     pausarTela();
 }
 
+void pesquisarClienteAtivoMenu(SISTEMA *sistema) {
+    int idCliente;
+    CLIENTE *cliente;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    lerInteiro("Id do cliente: ", &idCliente, 1, 999999999);
+
+    cliente = procurarClienteHash(&sistema->clientesHash, idCliente);
+
+    if (cliente == NULL) {
+        printf("Cliente nao encontrado entre os clientes ativos.\n");
+        return;
+    }
+
+    printf("Cliente encontrado:\n");
+    printf("Id: %06d\n", cliente->id);
+    printf("Nome: %s\n", cliente->nome);
+    printf("Estado: ");
+
+    if (cliente->estado == CLIENTE_A_COMPRAR) {
+        printf("A comprar\n");
+    } else if (cliente->estado == CLIENTE_EM_FILA) {
+        printf("Em fila\n");
+    } else if (cliente->estado == CLIENTE_EM_ATENDIMENTO) {
+        printf("Em atendimento\n");
+    } else if (cliente->estado == CLIENTE_ATENDIDO) {
+        printf("Atendido\n");
+    } else {
+        printf("Desconhecido\n");
+    }
+
+    printf("Caixa: ");
+    if (cliente->idCaixaAtual == ID_CAIXA_INVALIDO) {
+        printf("Nenhuma\n");
+    } else {
+        printf("%d\n", cliente->idCaixaAtual);
+    }
+        
+    printf("Numero de produtos: %d\n", cliente->nProdutos);
+
+    int i;
+
+    printf("\nProdutos:\n");
+
+    for (i = 0; i < cliente->nProdutos; i++) {
+        printf("  - %s (%.2f)€\n",
+            cliente->produtos[i].nome,
+            cliente->produtos[i].preco);
+    }
+}
+
+void listarClientesComprandoMenu(const SISTEMA *sistema) {
+    NO_CLIENTE_COMPRANDO *atual;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    printf("\n%s", LINHA_SEPARADORA);
+    printf("CLIENTES A COMPRAR\n");
+    printf("%s", LINHA_SEPARADORA);
+
+    if (sistema->clientesComprando.inicio == NULL) {
+        printf("Nao existem clientes a comprar neste momento.\n");
+        return;
+    }
+
+    atual = sistema->clientesComprando.inicio;
+
+    while (atual != NULL) {
+        if (atual->cliente != NULL) {
+            printf("ID: %06d | Nome: %s\n",
+                   atual->cliente->id,
+                   atual->cliente->nome);
+        }
+
+        atual = atual->seguinte;
+    }
+
+    printf("Total: %d\n", sistema->clientesComprando.tamanho);
+}
+
 void executarMenuGestao(SISTEMA *sistema) {
     int opcao = -1;
 
@@ -317,7 +405,7 @@ void executarMenuGestao(SISTEMA *sistema) {
 
     while (opcao != 0) {
         mostrarMenuGestao();
-        lerInteiro("Opcao: ", &opcao, 0, 6);
+        lerInteiro("Opcao: ", &opcao, 0, 8);
 
         switch (opcao) {
             case 1:
@@ -347,6 +435,16 @@ void executarMenuGestao(SISTEMA *sistema) {
 
             case 6:
                 alterarVelocidadeSimulacao(sistema);
+                break;
+
+            case 7:
+                pesquisarClienteAtivoMenu(sistema);
+                pausarTela();
+                break;
+
+            case 8:
+                listarClientesComprandoMenu(sistema);
+                pausarTela();
                 break;
 
             case 0:

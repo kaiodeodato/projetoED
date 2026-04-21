@@ -18,5 +18,7 @@ void mostrarEstadoResumidoSistema(const SISTEMA *sistema);
 void executarMenuGestao(SISTEMA *sistema);
 void alterarVelocidadeSimulacao(SISTEMA *sistema);
 char *obterTextoVelocidade(int velocidade);
+void pesquisarClienteAtivoMenu(SISTEMA *sistema);
+void listarClientesComprandoMenu(const SISTEMA *sistema);
 
 #endif

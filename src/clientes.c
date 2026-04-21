@@ -76,7 +76,8 @@ int gerarNovosClientes(SISTEMA *sistema) {
 
 CLIENTE *gerarClienteAleatorio(SISTEMA *sistema) {
     CLIENTE *cliente;
-    const char *nomeEscolhido;
+    CLIENTE_BASE *clienteBase;
+    int indice;
 
     if (sistema == NULL) {
         return NULL;
@@ -86,17 +87,16 @@ CLIENTE *gerarClienteAleatorio(SISTEMA *sistema) {
         return NULL;
     }
 
-    nomeEscolhido = obterNomeAleatorioDisponivel(sistema);
-    if (nomeEscolhido == NULL) {
-        return NULL;
-    }
+    indice = Aleatorio(0, sistema->baseClientes.tamanho - 1);
+    clienteBase = &sistema->baseClientes.dados[indice];
 
     cliente = criarCliente(sistema);
     if (cliente == NULL) {
         return NULL;
     }
 
-    copiarStringSeguro(cliente->nome, nomeEscolhido, MAX_NOME);
+    cliente->id = clienteBase->id;
+    copiarStringSeguro(cliente->nome, clienteBase->nome, MAX_NOME);
 
     gerarProdutosCliente(cliente, sistema);
 
