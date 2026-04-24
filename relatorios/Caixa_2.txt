@@ -1,0 +1,17 @@
+Caixa 2
+Codigo do atendente: 3044
+Nome do atendente: Patricia Cabral Henriques Bras
+
+Pessoas atendidas:
+  461443 - Daniel Azevedo Pinheiro
+  40622 - Cristiano Proenca Calado
+  683384 - Camilo Pires Pinheiro
+  399001 - Paula Mourao Pires
+  791722 - Dina Nunes Mota
+  186934 - Pedro Carneiro Real
+
+Clientes atendidos: 6
+Produtos vendidos: 63
+Valor vendido: 216.23
+Produtos oferecidos: 0
+Valor oferecido: 0.00

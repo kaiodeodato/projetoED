@@ -5,18 +5,6 @@
 #include "define.h"
 #include "uteis.h"
 
-PRODUTO *obterProdutoPorIndice(BASE_PRODUTOS *base, int indice) {
-    if (base == NULL || base->dados == NULL) {
-        return NULL;
-    }
-
-    if (indice < 0 || indice >= base->tamanho) {
-        return NULL;
-    }
-
-    return &base->dados[indice];
-}
-
 PRODUTO *gerarProdutoAleatorio(BASE_PRODUTOS *base) {
     int indice;
 
@@ -73,91 +61,6 @@ float calcularValorTotalProdutos(const PRODUTO *produtos, int quantidade) {
     }
 
     return valorTotal;
-}
-
-int garantirCapacidadeBaseProdutos(BASE_PRODUTOS *base) {
-    PRODUTO *novosDados;
-    int novaCapacidade;
-
-    if (base == NULL) {
-        return 0;
-    }
-
-    if (base->dados == NULL) {
-        base->dados = (PRODUTO *)malloc(sizeof(PRODUTO) * CAPACIDADE_INICIAL_PRODUTOS_BASE);
-        if (base->dados == NULL) {
-            return 0;
-        }
-
-        base->capacidade = CAPACIDADE_INICIAL_PRODUTOS_BASE;
-        return 1;
-    }
-
-    if (base->tamanho < base->capacidade) {
-        return 1;
-    }
-
-    novaCapacidade = base->capacidade * FATOR_CRESCIMENTO_VETORES;
-    novosDados = (PRODUTO *)realloc(base->dados, sizeof(PRODUTO) * novaCapacidade);
-    if (novosDados == NULL) {
-        return 0;
-    }
-
-    base->dados = novosDados;
-    base->capacidade = novaCapacidade;
-    return 1;
-}
-
-void inicializarBaseProdutos(BASE_PRODUTOS *base) {
-    if (base == NULL) {
-        return;
-    }
-
-    base->dados = NULL;
-    base->tamanho = 0;
-    base->capacidade = 0;
-}
-
-void removerQuebraLinha(char *texto) {
-    if (texto == NULL) {
-        return;
-    }
-
-    texto[strcspn(texto, "\r\n")] = '\0';
-}
-
-void copiarNomeProduto(char *destino, const char *origem) {
-    int inicio = 0;
-    int fim;
-
-    if (destino == NULL || origem == NULL) {
-        return;
-    }
-
-    while (origem[inicio] == ' ' || origem[inicio] == '\t') {
-        inicio++;
-    }
-
-    fim = (int)strlen(origem + inicio) - 1;
-    while (fim >= 0 &&
-           ((origem + inicio)[fim] == ' ' || (origem + inicio)[fim] == '\t')) {
-        fim--;
-    }
-
-    if (fim < 0) {
-        destino[0] = '\0';
-        return;
-    }
-
-    {
-        int tamanho = fim + 1;
-        if (tamanho >= MAX_NOME) {
-            tamanho = MAX_NOME - 1;
-        }
-
-        strncpy(destino, origem + inicio, tamanho);
-        destino[tamanho] = '\0';
-    }
 }
 
 void trocarProdutos(PRODUTO *a, PRODUTO *b) {

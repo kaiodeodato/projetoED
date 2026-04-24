@@ -74,14 +74,6 @@ CLIENTE *desenfileirarCliente(FILA *fila) {
     return cliente;
 }
 
-CLIENTE *obterClienteInicioFila(const FILA *fila) {
-    if (fila == NULL || filaEstaVazia(fila)) {
-        return NULL;
-    }
-
-    return fila->inicio->cliente;
-}
-
 int removerClienteDaFilaPorId(FILA *fila, int idCliente) {
     ELEMENTO *atual;
     ELEMENTO *anterior;

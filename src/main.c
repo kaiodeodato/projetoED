@@ -19,16 +19,7 @@
 #include "uteis.h"
 #include "filas.h"
 #include "clientes.h"
-
-void inicializarSistemaBase(SISTEMA *sistema);
-int carregarDadosIniciais(SISTEMA *sistema);
-void executarLoopPrincipal(SISTEMA *sistema);
-void finalizarSistema(SISTEMA *sistema);
-void libertarEstruturasDinamicas(SISTEMA *sistema);
-void libertarClientesAtivosHash(SISTEMA *sistema);
-void libertarClientesHistoricoCaixas(SISTEMA *sistema);
-void libertarBases(SISTEMA *sistema);
-void gerarSaidasFinais(SISTEMA *sistema);
+#include "main.h"
 
 int main(void) {
     configurarAmbienteUTF8();
@@ -142,7 +133,15 @@ void executarLoopPrincipal(SISTEMA *sistema) {
 
     while (opcao != 0) {
         mostrarMenuPrincipal();
-        opcao = lerOpcaoMenu();
+        opcao = lerOpcaoMenu(0, 5);
+
+        if (opcao == 0 && sistema->estadoSimulacao != SIMULACAO_ENCERRADA) {
+            printf("Encerre a simulacao antes de sair.\n");
+            pausarTela();
+            opcao = -1;
+            continue;
+        }
+
         executarOpcaoMenu(sistema, opcao);
     }
 }
@@ -193,6 +192,7 @@ void gerarSaidasFinais(SISTEMA *sistema) {
         EXTENSAO_TXT
     );
 
+    limparPastaRelatorios();
     escreverHistoricoCSV(&sistema->logs, nomeHistorico);
     escreverRelatorioEstatisticas(sistema, nomeEstatisticas);
     escreverRelatoriosTodasCaixas(sistema);

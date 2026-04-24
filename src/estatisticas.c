@@ -114,14 +114,6 @@ void atualizarEstatisticasCaixas(SISTEMA *sistema) {
     atualizarMelhorCaixaProdutos(sistema);
 }
 
-void determinarMelhoresCaixas(SISTEMA *sistema) {
-    if (sistema == NULL) {
-        return;
-    }
-
-    atualizarEstatisticasCaixas(sistema);
-}
-
 void determinarOperadorMenosAtendimentos(SISTEMA *sistema) {
     int i;
     COLABORADOR *pior = NULL;

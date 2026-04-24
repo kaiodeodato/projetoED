@@ -24,12 +24,7 @@ void inicializarSimulacao(SISTEMA *sistema) {
 
     inicializarEstatisticas(&sistema->estatisticas);
 
-    adicionarLog(
-        &sistema->logs,
-        sistema->tempoAtual,
-        "SIMULACAO",
-        "Simulacao inicializada"
-    );
+    adicionarLog(&sistema->logs,sistema->tempoAtual,"SIMULACAO","Simulacao preparada");
 }
 
 void executarSimulacao(SISTEMA *sistema) {
@@ -50,12 +45,7 @@ void executarSimulacao(SISTEMA *sistema) {
     sistema->ciclosDesdeUltimoRefresh = 0;
 
     if (!estavaPausada) {
-        adicionarLog(
-            &sistema->logs,
-            sistema->tempoAtual,
-            "SIMULACAO",
-            "Simulacao iniciada"
-        );
+        adicionarLog(&sistema->logs,sistema->tempoAtual,"SIMULACAO","Simulacao iniciada");
     }
 
     mostrarPainelSimulacao(sistema);
@@ -237,17 +227,26 @@ void avaliarMudancasFilaSimulacao(SISTEMA *sistema) {
 }
 
 void verificarAberturaCaixasSimulacao(SISTEMA *sistema) {
-    float mediaClientes;
     CAIXA *caixa;
+    int i;
+    int existeFilaGrande = 0;
 
     if (sistema == NULL) {
         return;
     }
 
-    mediaClientes = calcularMediaClientesPorCaixaAberta(sistema);
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        if (!caixaEstaAberta(&sistema->caixas[i])) {
+            continue;
+        }
 
-    if (mediaClientes <= sistema->config.MAX_FILA &&
-        !existeCaixaComTempoAcimaDoLimite(sistema)) {
+        if (obterTamanhoFila(&sistema->caixas[i].fila) > N_MINIMO_CLIENTES_CAIXAS) {
+            existeFilaGrande = 1;
+            break;
+        }
+    }
+
+    if (!existeFilaGrande) {
         return;
     }
 
@@ -262,7 +261,6 @@ void verificarAberturaCaixasSimulacao(SISTEMA *sistema) {
 }
 
 void verificarEncerramentoCaixasSimulacao(SISTEMA *sistema) {
-    float mediaClientes;
     CAIXA *caixa;
 
     if (sistema == NULL) {
@@ -273,14 +271,12 @@ void verificarEncerramentoCaixasSimulacao(SISTEMA *sistema) {
         return;
     }
 
-    mediaClientes = calcularMediaClientesPorCaixaAberta(sistema);
-
-    if (mediaClientes > sistema->config.MIN_FILA - 1) {
+    caixa = obterCaixaParaEncerramentoAutomatico(sistema);
+    if (caixa == NULL) {
         return;
     }
 
-    caixa = obterCaixaParaEncerramentoAutomatico(sistema);
-    if (caixa == NULL) {
+    if (obterTamanhoFila(&caixa->fila) >= N_MINIMO_CLIENTES_CAIXAS) {
         return;
     }
 
@@ -314,43 +310,24 @@ void pausarSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
     }
-
     sistema->estadoSimulacao = SIMULACAO_PAUSADA;
-
-    adicionarLog(
-        &sistema->logs,
-        sistema->tempoAtual,
-        "SIMULACAO",
-        "Simulacao pausada"
-    );
+    adicionarLog(&sistema->logs,sistema->tempoAtual,"SIMULACAO","Simulacao pausada");
 }
 
 void retomarSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
     }
-
-    adicionarLog(
-        &sistema->logs,
-        sistema->tempoAtual,
-        "SIMULACAO",
-        "Simulacao retomada"
-    );
+    adicionarLog(&sistema->logs,sistema->tempoAtual,"SIMULACAO","Simulacao retomada");
 }
 
 void encerrarSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
     }
-
     sistema->estadoSimulacao = SIMULACAO_ENCERRADA;
-
-    adicionarLog(
-        &sistema->logs,
-        sistema->tempoAtual,
-        "SIMULACAO",
-        "Simulacao encerrada"
-    );
+    adicionarLog(&sistema->logs,sistema->tempoAtual,"SIMULACAO","Simulacao encerrada");
+    printf("Simulacao encerrada com sucesso.\n");
 }
 
 void processarClientesTerminadosEmCompras(SISTEMA *sistema) {
@@ -572,6 +549,7 @@ void mostrarPainelSimulacao(const SISTEMA *sistema) {
     printf("Clientes atendidos:      %d\n", sistema->estatisticas.totalClientesAtendidos);
     printf("Produtos oferecidos:     %d\n", sistema->estatisticas.totalProdutosOferecidos);
     printf("Tempo medio de espera:   %.2f min\n", sistema->estatisticas.tempoMedioEspera);
+    printf("Clientes nas caixas:     %d\n", contarClientesNasCaixas(sistema));
 
     printf("\nESTADO DAS CAIXAS\n");
     printf("%s", LINHA_SEPARADORA);
@@ -584,12 +562,13 @@ void mostrarPainelSimulacao(const SISTEMA *sistema) {
         const CAIXA *caixa = &sistema->caixas[i];
 
         printf(
-            "Caixa %d | Estado=%d | Abertura=%s | Fila=%d | Atendimento=%s | Atendidos=%d\n",
+            "Caixa %d | Estado=%d | Abertura=%s | Fila=%d | EmAtendimento=%d | Total=%d | Atendidos=%d\n",
             caixa->id,
             caixa->estado,
             obterTextoControloCaixa(caixa),
             caixa->fila.tamanho,
-            caixa->clienteAtual != NULL ? "SIM" : "NAO",
+            caixa->clienteAtual != NULL ? 1 : 0,
+            caixa->fila.tamanho + (caixa->clienteAtual != NULL ? 1 : 0),
             caixa->clientesAtendidos
         );
     }
@@ -719,6 +698,5 @@ void reinicializarEstadoSimulacao(SISTEMA *sistema) {
     sistema->ciclosDesdeUltimoRefresh = 0;
 
     inicializarEstatisticas(&sistema->estatisticas);
-
     adicionarLog(&sistema->logs, 0, "SIMULACAO", "Simulacao reinicializada");
 }

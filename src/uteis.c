@@ -130,22 +130,6 @@ void gerarTimestampFormatado(char *buffer, int tamanho) {
     strftime(buffer, tamanho, "%Y%m%d_%H%M%S", infoTempo);
 }
 
-int compararStrings(const char *a, const char *b) {
-    if (a == NULL && b == NULL) {
-        return 0;
-    }
-
-    if (a == NULL) {
-        return -1;
-    }
-
-    if (b == NULL) {
-        return 1;
-    }
-
-    return strcmp(a, b);
-}
-
 void copiarStringSeguro(char *destino, const char *origem, int tamanho) {
     if (destino == NULL || origem == NULL || tamanho <= 0) {
         return;
@@ -153,14 +137,6 @@ void copiarStringSeguro(char *destino, const char *origem, int tamanho) {
 
     strncpy(destino, origem, tamanho - 1);
     destino[tamanho - 1] = '\0';
-}
-
-int stringVazia(const char *str) {
-    if (str == NULL) {
-        return 1;
-    }
-
-    return str[0] == '\0';
 }
 
 void gerarNomeFicheiroComTimestamp(char *destino, int tamanho, const char *prefixo, const char *extensao) {

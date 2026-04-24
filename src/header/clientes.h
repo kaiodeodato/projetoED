@@ -15,7 +15,6 @@ int calcularTempoTotalComprasCliente(const CLIENTE *cliente);
 int calcularTempoTotalPagamentoCliente(const CLIENTE *cliente);
 float calcularValorTotalComprasCliente(const CLIENTE *cliente);
 void atualizarEstadoCliente(CLIENTE *cliente, ESTADO_CLIENTE novoEstado);
-int clienteEstaEmCompras(const CLIENTE *cliente);
 int clienteEstaEmAtendimento(const CLIENTE *cliente);
 void registarEntradaFilaCliente(CLIENTE *cliente, int instanteAtual);
 int calcularTempoEsperaCliente(const CLIENTE *cliente, int instanteAtual);
@@ -32,11 +31,9 @@ void libertarCliente(CLIENTE *cliente);
 void limparCamposCliente(CLIENTE *cliente);
 int obterQuantidadeProdutosCliente(const SISTEMA *sistema);
 int obterQuantidadeNovosClientesNoCiclo(const SISTEMA *sistema);
-int existeClienteAtivoComNome(const SISTEMA *sistema, const char *nome);
-const char *obterNomeAleatorioDisponivel(const SISTEMA *sistema);
 void calcularCamposDerivadosCliente(CLIENTE *cliente);
 int obterIndiceProdutoMaisBarato(const CLIENTE *cliente);
 int gerarProximoIdClienteBase(BASE_CLIENTES *base);
-
+int contarClientesNasCaixas(const SISTEMA *sistema);
 
 #endif

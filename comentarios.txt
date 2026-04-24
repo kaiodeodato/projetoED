@@ -128,3 +128,7 @@ juntamente com alguns outros indicadores importantes, como tamanho de filas, qua
 - outra decisão de projeto foi ordenar as listas de produtos de cada cliente, de maneira a que sempre que haja uma oferta de produto o produto mais barato seja ofertado.
 - é possivel listar os clientes que estao a comprar na loja no momento
 - é possivel fazer a busca de clientes por id, e essa busca no mostra algumas informações do cliente como nome e quantidade de produtos bem como a lista inteira de compras do cliente
+
+
+salvar novo cliente no ficheiro clientes.txt e salvar novo produto no ficheiro produtos.txt, para nao perder
+

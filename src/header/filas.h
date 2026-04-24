@@ -10,7 +10,6 @@ int filaEstaVazia(const FILA *fila);
 int obterTamanhoFila(const FILA *fila);
 int enfileirarCliente(FILA *fila, CLIENTE *cliente);
 CLIENTE *desenfileirarCliente(FILA *fila);
-CLIENTE *obterClienteInicioFila(const FILA *fila);
 int removerClienteDaFilaPorId(FILA *fila, int idCliente);
 void libertarFila(FILA *fila);
 ELEMENTO *criarElementoFila(CLIENTE *cliente);

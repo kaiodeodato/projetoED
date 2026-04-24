@@ -16,7 +16,6 @@ void registarEncerramentoAutomatico(ESTATISTICAS *estatisticas);
 void atualizarTempoEspera(ESTATISTICAS *estatisticas, int tempoEspera);
 void calcularTempoMedioEspera(ESTATISTICAS *estatisticas);
 void atualizarEstatisticasCaixas(SISTEMA *sistema);
-void determinarMelhoresCaixas(SISTEMA *sistema);
 void determinarOperadorMenosAtendimentos(SISTEMA *sistema);
 void atualizarMelhorCaixaClientes(SISTEMA *sistema);
 void atualizarMelhorCaixaProdutos(SISTEMA *sistema);

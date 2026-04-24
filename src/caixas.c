@@ -94,35 +94,6 @@ CAIXA *obterPrimeiraCaixaAberta(SISTEMA *sistema) {
     return NULL;
 }
 
-CAIXA *obterCaixaComMenorFila(SISTEMA *sistema) {
-    int i;
-    CAIXA *melhorCaixa = NULL;
-    int menorFila = 0;
-
-    if (sistema == NULL || sistema->caixas == NULL) {
-        return NULL;
-    }
-
-    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
-        CAIXA *caixa = &sistema->caixas[i];
-        int tamanhoFila;
-
-        if (!caixaAceitaNovosClientes(caixa)) {
-            continue;
-        }
-
-        tamanhoFila = obterTamanhoFila(&caixa->fila);
-
-        if (melhorCaixa == NULL || tamanhoFila < menorFila ||
-            (tamanhoFila == menorFila && caixa->id < melhorCaixa->id)) {
-            melhorCaixa = caixa;
-            menorFila = tamanhoFila;
-        }
-    }
-
-    return melhorCaixa;
-}
-
 CAIXA *obterCaixaComMenorTempoEstimado(SISTEMA *sistema) {
     int i;
     CAIXA *melhorCaixa = NULL;
@@ -146,35 +117,6 @@ CAIXA *obterCaixaComMenorTempoEstimado(SISTEMA *sistema) {
             (tempoEstimado == menorTempo && caixa->id < melhorCaixa->id)) {
             melhorCaixa = caixa;
             menorTempo = tempoEstimado;
-        }
-    }
-
-    return melhorCaixa;
-}
-
-CAIXA *obterCaixaComMenosClientes(SISTEMA *sistema) {
-    int i;
-    CAIXA *melhorCaixa = NULL;
-    int menorQuantidade = 0;
-
-    if (sistema == NULL || sistema->caixas == NULL) {
-        return NULL;
-    }
-
-    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
-        CAIXA *caixa = &sistema->caixas[i];
-        int quantidadeClientes;
-
-        if (!caixaEstaAberta(caixa)) {
-            continue;
-        }
-
-        quantidadeClientes = obterNumeroClientesCaixa(caixa);
-
-        if (melhorCaixa == NULL || quantidadeClientes < menorQuantidade ||
-            (quantidadeClientes == menorQuantidade && caixa->id < melhorCaixa->id)) {
-            melhorCaixa = caixa;
-            menorQuantidade = quantidadeClientes;
         }
     }
 
@@ -422,28 +364,6 @@ int adicionarClienteNaCaixa(CAIXA *caixa, CLIENTE *cliente, int instanteAtual) {
     return 1;
 }
 
-CLIENTE *retirarClienteDaCaixa(CAIXA *caixa) {
-    CLIENTE *clienteRemovido = NULL;
-
-    if (caixa == NULL) {
-        return NULL;
-    }
-
-    if (caixa->clienteAtual != NULL) {
-        clienteRemovido = caixa->clienteAtual;
-        caixa->clienteAtual = NULL;
-    } else {
-        clienteRemovido = desenfileirarCliente(&caixa->fila);
-    }
-
-    if (clienteRemovido != NULL) {
-        clienteRemovido->idCaixaAtual = ID_CAIXA_INVALIDO;
-    }
-
-    atualizarTempoEstimadoCaixa(caixa);
-    return clienteRemovido;
-}
-
 int redistribuirClientesCaixaFechada(SISTEMA *sistema, int idCaixa) {
     CAIXA *caixaOrigem;
     CLIENTE *cliente;
@@ -597,46 +517,12 @@ int calcularTempoEstimadoCaixa(const CAIXA *caixa) {
     return tempoTotal;
 }
 
-float calcularMediaClientesPorCaixaAberta(const SISTEMA *sistema) {
-    int abertas;
-    int totalClientes;
-
-    if (sistema == NULL) {
-        return 0.0f;
-    }
-
-    abertas = contarCaixasAbertas(sistema);
-    if (abertas <= 0) {
-        return 0.0f;
-    }
-
-    totalClientes = obterNumeroTotalClientesEmFilas(sistema);
-    return (float)totalClientes / (float)abertas;
-}
-
 int obterNumeroClientesCaixa(const CAIXA *caixa) {
     if (caixa == NULL) {
         return 0;
     }
 
     return obterTamanhoFila(&caixa->fila) + (caixa->clienteAtual != NULL ? 1 : 0);
-}
-
-int obterNumeroTotalClientesEmFilas(const SISTEMA *sistema) {
-    int i;
-    int total = 0;
-
-    if (sistema == NULL || sistema->caixas == NULL) {
-        return 0;
-    }
-
-    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
-        if (caixaEstaAberta(&sistema->caixas[i])) {
-            total += obterNumeroClientesCaixa(&sistema->caixas[i]);
-        }
-    }
-
-    return total;
 }
 
 void atualizarTempoEstimadoCaixa(CAIXA *caixa) {
@@ -714,26 +600,4 @@ void desativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa) {
     }
 
     caixa->operador = colaborador;
-}
-
-int existeCaixaComTempoAcimaDoLimite(SISTEMA *sistema) {
-    int i;
-
-    if (sistema == NULL || sistema->caixas == NULL) {
-        return 0;
-    }
-
-    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
-        CAIXA *caixa = &sistema->caixas[i];
-
-        if (!caixaEstaAberta(caixa)) {
-            continue;
-        }
-
-        if (calcularTempoEstimadoCaixa(caixa) > sistema->config.MAX_ESPERA) {
-            return 1;
-        }
-    }
-
-    return 0;
 }

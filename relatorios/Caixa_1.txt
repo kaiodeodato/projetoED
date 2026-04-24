@@ -1,0 +1,14 @@
+Caixa 1
+Codigo do atendente: 2856
+Nome do atendente: Ana Beatriz Campos Pereira
+
+Pessoas atendidas:
+  51423 - Luis Seixas Almeida
+  320020 - Boris Domingos Martins
+  590180 - Cristiano Amado Fonseca
+
+Clientes atendidos: 3
+Produtos vendidos: 29
+Valor vendido: 142.55
+Produtos oferecidos: 0
+Valor oferecido: 0.00

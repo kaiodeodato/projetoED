@@ -17,5 +17,6 @@ void escreverRelatoriosTodasCaixas(const SISTEMA *sistema);
 int garantirCapacidadeClientes(BASE_CLIENTES *base);
 int garantirCapacidadeProdutos(BASE_PRODUTOS *base);
 int garantirCapacidadeColaboradores(BASE_COLABORADORES *base);
+void limparPastaRelatorios(void);
 
 #endif

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <direct.h>
 #include "ficheiros.h"
 #include "define.h"
 #include "colaboradores.h"
@@ -306,6 +307,9 @@ int escreverHistoricoCSV(const LISTA_LOGS *logs, const char *nomeFicheiro) {
 int escreverRelatorioEstatisticas(const SISTEMA *sistema, const char *nomeFicheiro) {
     FILE *ficheiro;
     COLABORADOR *operador;
+    CLIENTE *clienteMaisGastou = NULL;
+    CLIENTE *clienteMenosGastou = NULL;
+    int i;
 
     if (sistema == NULL || nomeFicheiro == NULL) {
         return 0;
@@ -316,6 +320,30 @@ int escreverRelatorioEstatisticas(const SISTEMA *sistema, const char *nomeFichei
         return 0;
     }
 
+    if (sistema->caixas != NULL) {
+        for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+            NO_HISTORICO_CLIENTE *atual = sistema->caixas[i].historicoClientes.inicio;
+
+            while (atual != NULL) {
+                CLIENTE *cliente = atual->cliente;
+
+                if (cliente != NULL) {
+                    if (clienteMaisGastou == NULL ||
+                        cliente->valorTotalCompras > clienteMaisGastou->valorTotalCompras) {
+                        clienteMaisGastou = cliente;
+                    }
+
+                    if (clienteMenosGastou == NULL ||
+                        cliente->valorTotalCompras < clienteMenosGastou->valorTotalCompras) {
+                        clienteMenosGastou = cliente;
+                    }
+                }
+
+                atual = atual->seguinte;
+            }
+        }
+    }
+
     fprintf(ficheiro, "Tempo de simulacao: %d\n", sistema->estatisticas.tempoSimulacao);
     fprintf(ficheiro, "Clientes gerados: %d\n", sistema->estatisticas.totalClientesGerados);
     fprintf(ficheiro, "Clientes atendidos: %d\n", sistema->estatisticas.totalClientesAtendidos);
@@ -323,8 +351,7 @@ int escreverRelatorioEstatisticas(const SISTEMA *sistema, const char *nomeFichei
     fprintf(ficheiro, "Valor total vendido: %.2f\n", sistema->estatisticas.totalValorVendido);
     fprintf(ficheiro, "Produtos oferecidos: %d\n", sistema->estatisticas.totalProdutosOferecidos);
     fprintf(ficheiro, "Valor total oferecido: %.2f\n", sistema->estatisticas.totalValorOferecido);
-    fprintf(ficheiro, "Receita liquida: %.2f\n",
-            sistema->estatisticas.totalValorVendido - sistema->estatisticas.totalValorOferecido);
+    fprintf(ficheiro, "Receita liquida: %.2f\n",sistema->estatisticas.totalValorVendido - sistema->estatisticas.totalValorOferecido);
     fprintf(ficheiro, "Mudancas de fila: %d\n", sistema->estatisticas.totalMudancasFila);
     fprintf(ficheiro, "Aberturas automaticas: %d\n", sistema->estatisticas.totalAberturasAutomaticas);
     fprintf(ficheiro, "Encerramentos automaticos: %d\n", sistema->estatisticas.totalEncerramentosAutomaticos);
@@ -352,6 +379,30 @@ int escreverRelatorioEstatisticas(const SISTEMA *sistema, const char *nomeFichei
             "Operador com menos atendimentos: %d\n",
             sistema->estatisticas.idOperadorMenosAtendimentos
         );
+    }
+
+    if (clienteMaisGastou != NULL) {
+        fprintf(
+            ficheiro,
+            "Cliente que mais gastou: %06d - %s (%.2f)\n",
+            clienteMaisGastou->id,
+            clienteMaisGastou->nome,
+            clienteMaisGastou->valorTotalCompras
+        );
+    } else {
+        fprintf(ficheiro, "Cliente que mais gastou: nenhum cliente atendido\n");
+    }
+
+    if (clienteMenosGastou != NULL) {
+        fprintf(
+            ficheiro,
+            "Cliente que menos gastou: %06d - %s (%.2f)\n",
+            clienteMenosGastou->id,
+            clienteMenosGastou->nome,
+            clienteMenosGastou->valorTotalCompras
+        );
+    } else {
+        fprintf(ficheiro, "Cliente que menos gastou: nenhum cliente atendido\n");
     }
 
     fclose(ficheiro);
@@ -527,4 +578,18 @@ void escreverRelatoriosTodasCaixas(const SISTEMA *sistema) {
 
         escreverRelatorioCaixa(&sistema->caixas[i], nomeFicheiro);
     }
+}
+
+void limparPastaRelatorios(void) {
+    char comando[TAM_NOME_FICHEIRO * 2];
+
+    snprintf(
+        comando,
+        sizeof(comando),
+        "rmdir /s /q \"%s\"",
+        PASTA_RELATORIOS
+    );
+
+    system(comando);
+    _mkdir(PASTA_RELATORIOS);
 }

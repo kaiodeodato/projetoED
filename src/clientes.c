@@ -204,14 +204,6 @@ void atualizarEstadoCliente(CLIENTE *cliente, ESTADO_CLIENTE novoEstado) {
     cliente->estado = novoEstado;
 }
 
-int clienteEstaEmCompras(const CLIENTE *cliente) {
-    if (cliente == NULL) {
-        return 0;
-    }
-
-    return cliente->estado == CLIENTE_A_COMPRAR;
-}
-
 int clienteEstaEmAtendimento(const CLIENTE *cliente) {
     if (cliente == NULL) {
         return 0;
@@ -433,54 +425,6 @@ int obterQuantidadeNovosClientesNoCiclo(const SISTEMA *sistema) {
     return Aleatorio(minimo, maximo);
 }
 
-int existeClienteAtivoComNome(const SISTEMA *sistema, const char *nome) {
-    BUCKET *bucketAtual;
-
-    if (sistema == NULL || nome == NULL || stringVazia(nome)) {
-        return 0;
-    }
-
-    bucketAtual = sistema->clientesHash.inicio;
-    while (bucketAtual != NULL) {
-        HASHNODE *noAtual = bucketAtual->clientes;
-
-        while (noAtual != NULL) {
-            if (noAtual->cliente != NULL &&
-                compararStrings(noAtual->cliente->nome, nome) == 0) {
-                return 1;
-            }
-
-            noAtual = noAtual->prox;
-        }
-
-        bucketAtual = bucketAtual->prox;
-    }
-
-    return 0;
-}
-
-const char *obterNomeAleatorioDisponivel(const SISTEMA *sistema) {
-    int tentativas;
-    int limiteTentativas;
-
-    if (sistema == NULL || sistema->baseClientes.tamanho <= 0) {
-        return NULL;
-    }
-
-    limiteTentativas = sistema->baseClientes.tamanho * 2;
-
-    for (tentativas = 0; tentativas < limiteTentativas; tentativas++) {
-        int indice = Aleatorio(0, sistema->baseClientes.tamanho - 1);
-        const char *nome = sistema->baseClientes.dados[indice].nome;
-
-        if (!existeClienteAtivoComNome(sistema, nome)) {
-            return nome;
-        }
-    }
-
-    return NULL;
-}
-
 void calcularCamposDerivadosCliente(CLIENTE *cliente) {
     if (cliente == NULL) {
         return;
@@ -516,4 +460,23 @@ int gerarProximoIdClienteBase(BASE_CLIENTES *base) {
     }
 
     return base->dados[base->tamanho - 1].id + 1;
+}
+
+int contarClientesNasCaixas(const SISTEMA *sistema) {
+    int i;
+    int total = 0;
+
+    if (sistema == NULL || sistema->caixas == NULL) {
+        return 0;
+    }
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        total += sistema->caixas[i].fila.tamanho;
+
+        if (sistema->caixas[i].clienteAtual != NULL) {
+            total++;
+        }
+    }
+
+    return total;
 }

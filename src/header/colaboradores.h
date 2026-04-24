@@ -7,13 +7,9 @@
 
 COLABORADOR *obterColaboradorPorId(SISTEMA *sistema, int id);
 COLABORADOR *obterColaboradorPorCaixa(SISTEMA *sistema, int idCaixa);
-COLABORADOR *obterOperadorComMenosAtendimentos(SISTEMA *sistema);
 void associarColaboradoresAsCaixas(SISTEMA *sistema);
 void ativarColaborador(COLABORADOR *colaborador, int idCaixa);
 void desativarColaborador(COLABORADOR *colaborador);
 void incrementarClientesAtendidosColaborador(COLABORADOR *colaborador);
-void inicializarColaborador(COLABORADOR *colaborador);
-int garantirCapacidadeBaseColaboradores(BASE_COLABORADORES *base);
-
 
 #endif

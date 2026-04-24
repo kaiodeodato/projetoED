@@ -1,0 +1,16 @@
+Caixa 3
+Codigo do atendente: 9164
+Nome do atendente: Carolina Rita Cruz Almeida
+
+Pessoas atendidas:
+  660542 - Catarina Martins Queiros
+  944723 - Valdemar Antunes Soeiro
+  412771 - Marisa Regueira Moreno
+  237817 - Catarina Nascimento Real
+  25801 - Ricardo Rego Nascimento
+
+Clientes atendidos: 5
+Produtos vendidos: 44
+Valor vendido: 152.81
+Produtos oferecidos: 0
+Valor oferecido: 0.00

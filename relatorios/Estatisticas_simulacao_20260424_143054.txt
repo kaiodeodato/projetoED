@@ -1,0 +1,18 @@
+Tempo de simulacao: 418
+Clientes gerados: 106
+Clientes atendidos: 48
+Produtos vendidos: 297
+Valor total vendido: 1239.74
+Produtos oferecidos: 0
+Valor total oferecido: 0.00
+Receita liquida: 1239.74
+Mudancas de fila: 10
+Aberturas automaticas: 9
+Encerramentos automaticos: 7
+Soma tempos espera: 377.00
+Tempo medio espera: 7.85
+Caixa com mais clientes: 0
+Caixa com mais produtos: 0
+Operador com menos atendimentos: 3562 - Catarina Nicole Silva Silva (0 atendimentos)
+Cliente que mais gastou: 320020 - Boris Domingos Martins (67.62)
+Cliente que menos gastou: 932056 - Paulo Cunha Carrico (1.59)

@@ -6,7 +6,7 @@
 #include "structs.h"
 
 void mostrarMenuPrincipal();
-int lerOpcaoMenu();
+int lerOpcaoMenu(int min, int max);
 void executarOpcaoMenu(SISTEMA *sistema, int opcao);
 void mostrarMenuGestao();
 void adicionarClienteBaseMenu(SISTEMA *sistema);
@@ -19,6 +19,8 @@ void executarMenuGestao(SISTEMA *sistema);
 void alterarVelocidadeSimulacao(SISTEMA *sistema);
 char *obterTextoVelocidade(int velocidade);
 void pesquisarClienteAtivoMenu(SISTEMA *sistema);
-void listarClientesComprandoMenu(const SISTEMA *sistema);
+void listarTodosClientesMenu(const SISTEMA *sistema);
+void mostrarEstatisticasSimulacaoMenu(SISTEMA *sistema);
+void mostrarRelatorioMemoriaMenu(const SISTEMA *sistema);
 
 #endif
