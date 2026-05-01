@@ -1,12 +1,12 @@
 
-Kaio	    
+Kaio - debugger
 simulacao.c, 
 listaDeCompras.c, 
 estatisticas.c, 
 config.c, 
 historico.c	
    
-Ana	        
+Ana - tester
 caixas.c, 
 hashClientes.c, 
 filas.c, 
@@ -14,8 +14,7 @@ memoria.c,
 produtos.c, 
 uteis.c	                    
       
-
-Afonso	    
+Afonso - relatório 
 clientes.c, 
 menus.c, 
 ficheiros.c, 
