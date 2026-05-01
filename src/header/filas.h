@@ -6,8 +6,8 @@
 #include "structs.h"
 
 void inicializarFila(FILA *fila);
-int filaEstaVazia(const FILA *fila);
-int obterTamanhoFila(const FILA *fila);
+int filaEstaVazia(FILA *fila);
+int obterTamanhoFila(FILA *fila);
 int enfileirarCliente(FILA *fila, CLIENTE *cliente);
 CLIENTE *desenfileirarCliente(FILA *fila);
 int removerClienteDaFilaPorId(FILA *fila, int idCliente);

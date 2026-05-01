@@ -21,6 +21,7 @@
 #include "clientes.h"
 #include "main.h"
 
+// Função principal que inicializa o sistema, carrega dados, executa a simulação e liberta recursos no final
 int main(void) {
     configurarAmbienteUTF8();
     SISTEMA sistema;
@@ -41,7 +42,7 @@ int main(void) {
     finalizarSistema(&sistema);
     return 0;
 }
-
+// Inicializa a estrutura base do sistema, definindo configurações padrão e resetando todos os dados e estruturas
 void inicializarSistemaBase(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
@@ -78,7 +79,7 @@ void inicializarSistemaBase(SISTEMA *sistema) {
     inicializarListaClientesComprando(&sistema->clientesComprando);
     inicializarListaLogs(&sistema->logs);
 }
-
+// Carrega todos os dados iniciais do sistema (configuração, bases, hash e caixas), validando cada etapa
 int carregarDadosIniciais(SISTEMA *sistema) {
     if (sistema == NULL) {
         return 0;
@@ -123,7 +124,7 @@ int carregarDadosIniciais(SISTEMA *sistema) {
 
     return 1;
 }
-
+// Executa o loop principal do programa, gerindo o menu e impedindo saída enquanto a simulação estiver ativa ou pausada
 void executarLoopPrincipal(SISTEMA *sistema) {
     int opcao = -1;
 
@@ -133,9 +134,10 @@ void executarLoopPrincipal(SISTEMA *sistema) {
 
     while (opcao != 0) {
         mostrarMenuPrincipal();
-        opcao = lerOpcaoMenu(0, 5);
+        opcao = lerOpcaoMenu(0, 6);
 
-        if (opcao == 0 && sistema->estadoSimulacao != SIMULACAO_ENCERRADA) {
+        if (opcao == 0 &&
+            (sistema->estadoSimulacao == SIMULACAO_ATIVA || sistema->estadoSimulacao == SIMULACAO_PAUSADA)) {
             printf("Encerre a simulacao antes de sair.\n");
             pausarTela();
             opcao = -1;
@@ -145,7 +147,7 @@ void executarLoopPrincipal(SISTEMA *sistema) {
         executarOpcaoMenu(sistema, opcao);
     }
 }
-
+// Finaliza o sistema, gerando saídas finais e libertando toda a memória alocada
 void finalizarSistema(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
@@ -154,7 +156,7 @@ void finalizarSistema(SISTEMA *sistema) {
     gerarSaidasFinais(sistema);
     libertarEstruturasDinamicas(sistema);
 }
-
+// Gera todos os ficheiros de saída finais (histórico, estatísticas, relatórios e memória), atualizando dados antes de gravar
 void gerarSaidasFinais(SISTEMA *sistema) {
     char nomeHistorico[TAM_NOME_FICHEIRO];
     char nomeEstatisticas[TAM_NOME_FICHEIRO];
@@ -198,7 +200,7 @@ void gerarSaidasFinais(SISTEMA *sistema) {
     escreverRelatoriosTodasCaixas(sistema);
     gerarRelatorioMemoria(sistema, nomeMemoria);
 }
-
+// Liberta todas as estruturas dinâmicas do sistema, incluindo caixas, filas, listas, hash e bases de dados
 void libertarEstruturasDinamicas(SISTEMA *sistema) {
     int i;
 
@@ -224,7 +226,7 @@ void libertarEstruturasDinamicas(SISTEMA *sistema) {
 
     libertarBases(sistema);
 }
-
+// Liberta os clientes ativos na hash que ainda não foram atendidos, evitando libertar os já processados
 void libertarClientesAtivosHash(SISTEMA *sistema) {
     BUCKET *bucketAtual;
 
@@ -251,7 +253,7 @@ void libertarClientesAtivosHash(SISTEMA *sistema) {
         bucketAtual = bucketAtual->prox;
     }
 }
-
+// Liberta todos os clientes armazenados no histórico das caixas e limpa a estrutura associada
 void libertarClientesHistoricoCaixas(SISTEMA *sistema) {
     int i;
 
@@ -279,7 +281,7 @@ void libertarClientesHistoricoCaixas(SISTEMA *sistema) {
         sistema->caixas[i].historicoClientes.tamanho = 0;
     }
 }
-
+// Liberta a memória das bases de clientes, produtos e colaboradores e reinicializa os seus estados
 void libertarBases(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;

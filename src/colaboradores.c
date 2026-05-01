@@ -6,6 +6,7 @@
 #include "uteis.h"
 #include "define.h"
 
+// Retorna o colaborador com o id indicado a partir da base, ou NULL se não existir
 COLABORADOR *obterColaboradorPorId(SISTEMA *sistema, int id) {
     int i;
 
@@ -21,7 +22,7 @@ COLABORADOR *obterColaboradorPorId(SISTEMA *sistema, int id) {
 
     return NULL;
 }
-
+// Retorna o colaborador associado a uma caixa específica, ou NULL se não existir
 COLABORADOR *obterColaboradorPorCaixa(SISTEMA *sistema, int idCaixa) {
     int i;
 
@@ -37,7 +38,7 @@ COLABORADOR *obterColaboradorPorCaixa(SISTEMA *sistema, int idCaixa) {
 
     return NULL;
 }
-
+// Associa colaboradores às caixas por índice, ativando-os apenas nas caixas abertas
 void associarColaboradoresAsCaixas(SISTEMA *sistema) {
     int i;
     int limite;
@@ -64,7 +65,7 @@ void associarColaboradoresAsCaixas(SISTEMA *sistema) {
         }
     }
 }
-
+// Ativa o colaborador e associa-o à caixa indicada
 void ativarColaborador(COLABORADOR *colaborador, int idCaixa) {
     if (colaborador == NULL) {
         return;
@@ -73,7 +74,7 @@ void ativarColaborador(COLABORADOR *colaborador, int idCaixa) {
     colaborador->ativo = 1;
     colaborador->idCaixaAssociada = idCaixa;
 }
-
+// Desativa o colaborador, marcando-o como inativo
 void desativarColaborador(COLABORADOR *colaborador) {
     if (colaborador == NULL) {
         return;
@@ -81,7 +82,7 @@ void desativarColaborador(COLABORADOR *colaborador) {
 
     colaborador->ativo = 0;
 }
-
+// Incrementa o contador de clientes atendidos pelo colaborador
 void incrementarClientesAtendidosColaborador(COLABORADOR *colaborador) {
     if (colaborador == NULL) {
         return;

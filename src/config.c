@@ -4,7 +4,8 @@
 #include "define.h"
 #include "config.h"
 
-int carregarConfiguracao(CONFIGURACAO *config, const char *nomeFicheiro) {
+// Carrega a configuração a partir de um ficheiro, aplicando valores padrão, leitura e validação final
+int carregarConfiguracao(CONFIGURACAO *config, char *nomeFicheiro) {
     FILE *ficheiro;
     char chave[64];
     char valor[64];
@@ -28,8 +29,8 @@ int carregarConfiguracao(CONFIGURACAO *config, const char *nomeFicheiro) {
 
     return validarConfiguracao(config);
 }
-
-int validarConfiguracao(const CONFIGURACAO *config) {
+// Valida os parâmetros da configuração, garantindo que todos os valores estão dentro de limites aceitáveis
+int validarConfiguracao(CONFIGURACAO *config) {
     if (config == NULL) {
         return 0;
     }
@@ -80,7 +81,7 @@ int validarConfiguracao(const CONFIGURACAO *config) {
 
     return 1;
 }
-
+// Define os valores padrão da configuração do sistema
 void aplicarValoresDefault(CONFIGURACAO *config) {
     if (config == NULL) {
         return;
@@ -97,7 +98,7 @@ void aplicarValoresDefault(CONFIGURACAO *config) {
     config->MIN_NOVOS_CLIENTES_POR_CICLO = MIN_NOVOS_CLIENTES_POR_CICLO_DEFAULT;
     config->MAX_NOVOS_CLIENTES_POR_CICLO = MAX_NOVOS_CLIENTES_POR_CICLO_DEFAULT;
 }
-
+// Lê um par chave-valor do ficheiro de configuração
 int lerParConfiguracao(FILE *ficheiro, char *chave, char *valor) {
     if (ficheiro == NULL || chave == NULL || valor == NULL) {
         return 0;
@@ -105,8 +106,8 @@ int lerParConfiguracao(FILE *ficheiro, char *chave, char *valor) {
 
     return fscanf(ficheiro, "%63s %63s", chave, valor) == 2;
 }
-
-void aplicarValorConfiguracao(CONFIGURACAO *config, const char *chave, const char *valor) {
+// Aplica um valor à configuração com base na chave lida do ficheiro
+void aplicarValorConfiguracao(CONFIGURACAO *config, char *chave, char *valor) {
     if (config == NULL || chave == NULL || valor == NULL) {
         return;
     }

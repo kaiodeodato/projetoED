@@ -6,7 +6,8 @@
 #include "define.h"
 #include "colaboradores.h"
 
-int carregarBaseClientes(BASE_CLIENTES *base, const char *nomeFicheiro) {
+// Carrega a base de clientes a partir de um ficheiro, armazenando os dados válidos em memória
+int carregarBaseClientes(BASE_CLIENTES *base, char *nomeFicheiro) {
     FILE *ficheiro;
     char linha[256];
 
@@ -52,8 +53,8 @@ int carregarBaseClientes(BASE_CLIENTES *base, const char *nomeFicheiro) {
     fclose(ficheiro);
     return base->tamanho;
 }
-
-int carregarBaseProdutos(BASE_PRODUTOS *base, const char *nomeFicheiro) {
+// Carrega a base de produtos a partir de um ficheiro, processando cada linha e armazenando os dados válidos em memória
+int carregarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro) {
     FILE *ficheiro;
     char linha[256];
 
@@ -172,8 +173,8 @@ int carregarBaseProdutos(BASE_PRODUTOS *base, const char *nomeFicheiro) {
     fclose(ficheiro);
     return base->tamanho;
 }
-
-int carregarBaseColaboradores(BASE_COLABORADORES *base, const char *nomeFicheiro) {
+// Carrega a base de colaboradores a partir de um ficheiro, inicializando os dados e armazenando em memória
+int carregarBaseColaboradores(BASE_COLABORADORES *base, char *nomeFicheiro) {
     FILE *ficheiro;
     char linha[256];
 
@@ -224,8 +225,8 @@ int carregarBaseColaboradores(BASE_COLABORADORES *base, const char *nomeFicheiro
     fclose(ficheiro);
     return base->tamanho;
 }
-
-int guardarBaseClientes(const BASE_CLIENTES *base, const char *nomeFicheiro) {
+// Guarda a base de clientes num ficheiro, escrevendo todos os registos formatados
+int guardarBaseClientes(BASE_CLIENTES *base, char *nomeFicheiro) {
     FILE *ficheiro;
     int i;
 
@@ -247,8 +248,8 @@ int guardarBaseClientes(const BASE_CLIENTES *base, const char *nomeFicheiro) {
     fclose(ficheiro);
     return 1;
 }
-
-int guardarBaseProdutos(const BASE_PRODUTOS *base, const char *nomeFicheiro) {
+// Guarda a base de produtos num ficheiro, escrevendo todos os registos com formatação detalhada
+int guardarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro) {
     FILE *ficheiro;
     int i;
 
@@ -278,8 +279,8 @@ int guardarBaseProdutos(const BASE_PRODUTOS *base, const char *nomeFicheiro) {
     fclose(ficheiro);
     return 1;
 }
-
-int escreverHistoricoCSV(const LISTA_LOGS *logs, const char *nomeFicheiro) {
+// Escreve o histórico de ações num ficheiro CSV, incluindo instante e descrição de cada log
+int escreverHistoricoCSV(LISTA_LOGS *logs, char *nomeFicheiro) {
     FILE *ficheiro;
     NO_LOG_ACAO *atual;
 
@@ -303,10 +304,11 @@ int escreverHistoricoCSV(const LISTA_LOGS *logs, const char *nomeFicheiro) {
     fclose(ficheiro);
     return 1;
 }
-
-int escreverRelatorioEstatisticas(const SISTEMA *sistema, const char *nomeFicheiro) {
+// Gera um relatório de estatísticas da simulação em ficheiro, incluindo métricas gerais, operadores e clientes de destaque
+int escreverRelatorioEstatisticas(SISTEMA *sistema, char *nomeFicheiro) {
     FILE *ficheiro;
     COLABORADOR *operador;
+    COLABORADOR *operadorMais;
     CLIENTE *clienteMaisGastou = NULL;
     CLIENTE *clienteMenosGastou = NULL;
     int i;
@@ -365,6 +367,11 @@ int escreverRelatorioEstatisticas(const SISTEMA *sistema, const char *nomeFichei
         sistema->estatisticas.idOperadorMenosAtendimentos
     );
 
+    operadorMais = obterColaboradorPorId(
+        (SISTEMA *)sistema,
+        sistema->estatisticas.idOperadorMaisAtendimentos
+    );
+
     if (operador != NULL) {
         fprintf(
             ficheiro,
@@ -378,6 +385,22 @@ int escreverRelatorioEstatisticas(const SISTEMA *sistema, const char *nomeFichei
             ficheiro,
             "Operador com menos atendimentos: %d\n",
             sistema->estatisticas.idOperadorMenosAtendimentos
+        );
+    }
+
+    if (operadorMais != NULL) {
+        fprintf(
+            ficheiro,
+            "Operador com mais atendimentos: %d - %s (%d atendimentos)\n",
+            operadorMais->id,
+            operadorMais->nome,
+            operadorMais->clientesAtendidos
+        );
+    } else {
+        fprintf(
+            ficheiro,
+            "Operador com mais atendimentos: %d\n",
+            sistema->estatisticas.idOperadorMaisAtendimentos
         );
     }
 
@@ -408,7 +431,7 @@ int escreverRelatorioEstatisticas(const SISTEMA *sistema, const char *nomeFichei
     fclose(ficheiro);
     return 1;
 }
-
+// Garante capacidade suficiente na base de clientes, alocando ou expandindo memória conforme necessário
 int garantirCapacidadeClientes(BASE_CLIENTES *base) {
     CLIENTE_BASE *novosDados;
     int novaCapacidade;
@@ -441,7 +464,7 @@ int garantirCapacidadeClientes(BASE_CLIENTES *base) {
     base->capacidade = novaCapacidade;
     return 1;
 }
-
+// Garante capacidade suficiente na base de produtos, alocando ou expandindo memória conforme necessário
 int garantirCapacidadeProdutos(BASE_PRODUTOS *base) {
     PRODUTO *novosDados;
     int novaCapacidade;
@@ -474,7 +497,7 @@ int garantirCapacidadeProdutos(BASE_PRODUTOS *base) {
     base->capacidade = novaCapacidade;
     return 1;
 }
-
+// Garante capacidade suficiente na base de colaboradores, alocando ou expandindo memória conforme necessário
 int garantirCapacidadeColaboradores(BASE_COLABORADORES *base) {
     COLABORADOR *novosDados;
     int novaCapacidade;
@@ -507,8 +530,8 @@ int garantirCapacidadeColaboradores(BASE_COLABORADORES *base) {
     base->capacidade = novaCapacidade;
     return 1;
 }
-
-int escreverRelatorioCaixa(const CAIXA *caixa, const char *nomeFicheiro) {
+// Gera um relatório detalhado de uma caixa em ficheiro, incluindo operador, clientes atendidos e estatísticas
+int escreverRelatorioCaixa(CAIXA *caixa, char *nomeFicheiro) {
     FILE *ficheiro;
     NO_HISTORICO_CLIENTE *atual;
 
@@ -556,8 +579,8 @@ int escreverRelatorioCaixa(const CAIXA *caixa, const char *nomeFicheiro) {
     fclose(ficheiro);
     return 1;
 }
-
-void escreverRelatoriosTodasCaixas(const SISTEMA *sistema) {
+// Gera relatórios individuais para todas as caixas, criando um ficheiro para cada uma
+void escreverRelatoriosTodasCaixas(SISTEMA *sistema) {
     int i;
     char nomeFicheiro[TAM_NOME_FICHEIRO];
 
@@ -579,7 +602,7 @@ void escreverRelatoriosTodasCaixas(const SISTEMA *sistema) {
         escreverRelatorioCaixa(&sistema->caixas[i], nomeFicheiro);
     }
 }
-
+// Remove todos os ficheiros da pasta de relatórios e recria a pasta limpa
 void limparPastaRelatorios(void) {
     char comando[TAM_NOME_FICHEIRO * 2];
 

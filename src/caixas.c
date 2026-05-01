@@ -7,10 +7,9 @@
 #include "estatisticas.h"
 #include "hashClientes.h"
 
+// Inicializa uma caixa com estado fechado, controlo automático e todos os dados internos zerados
 void inicializarCaixa(CAIXA *caixa, int idCaixa) {
-    if (caixa == NULL) {
-        return;
-    }
+    if (caixa == NULL) return;
 
     caixa->id = idCaixa;
     caixa->estado = CAIXA_FECHADA;
@@ -32,7 +31,7 @@ void inicializarCaixa(CAIXA *caixa, int idCaixa) {
     caixa->historicoClientes.fim = NULL;
     caixa->historicoClientes.tamanho = 0;
 }
-
+// Aloca e inicializa todas as caixas do sistema, abrindo automaticamente um número inicial definido
 void inicializarCaixas(SISTEMA *sistema) {
     int i;
     int quantidadeCaixasAbertasInicial;
@@ -65,7 +64,7 @@ void inicializarCaixas(SISTEMA *sistema) {
         sistema->nCaixasAbertas++;
     }
 }
-
+// Retorna um ponteiro para a caixa com o id indicado, validando limites e existência
 CAIXA *obterCaixaPorId(SISTEMA *sistema, int idCaixa) {
     if (sistema == NULL || sistema->caixas == NULL) {
         return NULL;
@@ -77,7 +76,7 @@ CAIXA *obterCaixaPorId(SISTEMA *sistema, int idCaixa) {
 
     return &sistema->caixas[idCaixa];
 }
-
+// Retorna um ponteiro para a caixa com o id indicado, validando limites e existência
 CAIXA *obterPrimeiraCaixaAberta(SISTEMA *sistema) {
     int i;
 
@@ -93,7 +92,7 @@ CAIXA *obterPrimeiraCaixaAberta(SISTEMA *sistema) {
 
     return NULL;
 }
-
+// Retorna a caixa disponível com menor tempo estimado de espera, priorizando o menor id em caso de empate
 CAIXA *obterCaixaComMenorTempoEstimado(SISTEMA *sistema) {
     int i;
     CAIXA *melhorCaixa = NULL;
@@ -122,8 +121,8 @@ CAIXA *obterCaixaComMenorTempoEstimado(SISTEMA *sistema) {
 
     return melhorCaixa;
 }
-
-int contarCaixasAbertas(const SISTEMA *sistema) {
+// Conta e retorna o número de caixas atualmente abertas no sistema
+int contarCaixasAbertas(SISTEMA *sistema) {
     int i;
     int contador = 0;
 
@@ -139,8 +138,8 @@ int contarCaixasAbertas(const SISTEMA *sistema) {
 
     return contador;
 }
-
-int contarCaixasEmEncerramento(const SISTEMA *sistema) {
+// Conta e retorna o número de caixas que estão em processo de encerramento
+int contarCaixasEmEncerramento(SISTEMA *sistema) {
     int i;
     int contador = 0;
 
@@ -156,47 +155,47 @@ int contarCaixasEmEncerramento(const SISTEMA *sistema) {
 
     return contador;
 }
-
-int caixaEstaAberta(const CAIXA *caixa) {
+// Verifica se a caixa está aberta, retornando 1 se sim ou 0 caso contrário
+int caixaEstaAberta(CAIXA *caixa) {
     if (caixa == NULL) {
         return 0;
     }
 
     return caixa->estado == CAIXA_ABERTA;
 }
-
-int caixaEstaFechada(const CAIXA *caixa) {
+// Verifica se a caixa está fechada, retornando 1 se sim ou 0 caso contrário
+int caixaEstaFechada(CAIXA *caixa) {
     if (caixa == NULL) {
         return 0;
     }
 
     return caixa->estado == CAIXA_FECHADA;
 }
-
-int caixaEstaEmEncerramento(const CAIXA *caixa) {
+// Verifica se a caixa está em processo de encerramento, retornando 1 se sim ou 0 caso contrário
+int caixaEstaEmEncerramento(CAIXA *caixa) {
     if (caixa == NULL) {
         return 0;
     }
 
     return caixa->estado == CAIXA_EM_ENCERRAMENTO;
 }
-
-int caixaAceitaNovosClientes(const CAIXA *caixa) {
+// Verifica se a caixa pode aceitar novos clientes (apenas quando está aberta)
+int caixaAceitaNovosClientes(CAIXA *caixa) {
     if (caixa == NULL) {
         return 0;
     }
 
     return caixa->estado == CAIXA_ABERTA;
 }
-
-int caixaTemClientes(const CAIXA *caixa) {
+// Verifica se a caixa possui clientes, seja em atendimento ou na fila
+int caixaTemClientes(CAIXA *caixa) {
     if (caixa == NULL) {
         return 0;
     }
 
     return caixa->clienteAtual != NULL || !filaEstaVazia(&caixa->fila);
 }
-
+// Abre a caixa, respeitando o controlo manual e impedindo ações automáticas se estiver bloqueada pelo gerente
 int abrirCaixa(SISTEMA *sistema, int idCaixa, int controloManual) {
     CAIXA *caixa;
 
@@ -209,36 +208,23 @@ int abrirCaixa(SISTEMA *sistema, int idCaixa, int controloManual) {
         return 0;
     }
 
-    if (caixaEstaAberta(caixa)) {
-        if (controloManual) {
-            caixa->controloManualGerente = CAIXA_COM_CONTROLO_MANUAL;
-            caixa->bloqueadaAutomaticamente = CAIXA_NAO_BLOQUEADA_AUTOMATICAMENTE;
+    if (controloManual) {
+        caixa->controloManualGerente = CAIXA_COM_CONTROLO_MANUAL;
+        caixa->bloqueadaAutomaticamente = CAIXA_NAO_BLOQUEADA_AUTOMATICAMENTE;
+    } else {
+        if (caixa->controloManualGerente == CAIXA_COM_CONTROLO_MANUAL) {
+            return 0;
         }
+    }
+
+    if (caixaEstaAberta(caixa)) {
         return 1;
     }
 
     if (caixaEstaEmEncerramento(caixa) && caixaTemClientes(caixa)) {
         caixa->estado = CAIXA_ABERTA;
-        if (controloManual) {
-            caixa->controloManualGerente = CAIXA_COM_CONTROLO_MANUAL;
-            caixa->bloqueadaAutomaticamente = CAIXA_NAO_BLOQUEADA_AUTOMATICAMENTE;
-        } else {
-            caixa->controloManualGerente = CAIXA_SEM_CONTROLO_MANUAL;
-            caixa->bloqueadaAutomaticamente = CAIXA_NAO_BLOQUEADA_AUTOMATICAMENTE;
-        }
-        sistema->nCaixasAbertas = contarCaixasAbertas(sistema);
-        ativarOperadorDaCaixa(sistema, idCaixa);
-        atualizarTempoEstimadoCaixa(caixa);
-        return 1;
-    }
-
-    caixa->estado = CAIXA_ABERTA;
-    caixa->bloqueadaAutomaticamente = CAIXA_NAO_BLOQUEADA_AUTOMATICAMENTE;
-
-    if (controloManual) {
-        caixa->controloManualGerente = CAIXA_COM_CONTROLO_MANUAL;
     } else {
-        caixa->controloManualGerente = CAIXA_SEM_CONTROLO_MANUAL;
+        caixa->estado = CAIXA_ABERTA;
     }
 
     sistema->nCaixasAbertas = contarCaixasAbertas(sistema);
@@ -247,7 +233,7 @@ int abrirCaixa(SISTEMA *sistema, int idCaixa, int controloManual) {
 
     return 1;
 }
-
+// Coloca a caixa em encerramento (ou fecha diretamente), respeitando o controlo manual e redistribuindo clientes se necessário
 int encerrarCaixa(SISTEMA *sistema, int idCaixa, int controloManual) {
     CAIXA *caixa;
 
@@ -260,8 +246,22 @@ int encerrarCaixa(SISTEMA *sistema, int idCaixa, int controloManual) {
         return 0;
     }
 
-    if (caixaEstaFechada(caixa)) {
+    if (controloManual) {
+        caixa->controloManualGerente = CAIXA_COM_CONTROLO_MANUAL;
+        caixa->bloqueadaAutomaticamente = CAIXA_BLOQUEADA_AUTOMATICAMENTE;
+    } else if (caixa->controloManualGerente == CAIXA_COM_CONTROLO_MANUAL) {
         return 0;
+    } else {
+        caixa->controloManualGerente = CAIXA_SEM_CONTROLO_MANUAL;
+        caixa->bloqueadaAutomaticamente = CAIXA_NAO_BLOQUEADA_AUTOMATICAMENTE;
+    }
+
+    if (caixaEstaFechada(caixa)) {
+        caixa->estado = CAIXA_FECHADA;
+        caixa->tempoTotalEstimadoFila = 0;
+        sistema->nCaixasAbertas = contarCaixasAbertas(sistema);
+        desativarOperadorDaCaixa(sistema, idCaixa);
+        return 1;
     }
 
     if (caixaEstaEmEncerramento(caixa)) {
@@ -271,10 +271,7 @@ int encerrarCaixa(SISTEMA *sistema, int idCaixa, int controloManual) {
     caixa->estado = CAIXA_EM_ENCERRAMENTO;
 
     if (controloManual) {
-        caixa->controloManualGerente = CAIXA_COM_CONTROLO_MANUAL;
         redistribuirClientesCaixaFechada(sistema, idCaixa);
-    } else {
-        caixa->controloManualGerente = CAIXA_SEM_CONTROLO_MANUAL;
     }
 
     atualizarTempoEstimadoCaixa(caixa);
@@ -286,7 +283,7 @@ int encerrarCaixa(SISTEMA *sistema, int idCaixa, int controloManual) {
 
     return 1;
 }
-
+// Fecha a caixa definitivamente, respeitando controlo manual e redistribuindo clientes antes do encerramento
 int fecharCaixa(SISTEMA *sistema, int idCaixa, int controloManual) {
     CAIXA *caixa;
 
@@ -297,6 +294,11 @@ int fecharCaixa(SISTEMA *sistema, int idCaixa, int controloManual) {
     caixa = obterCaixaPorId(sistema, idCaixa);
     if (caixa == NULL) {
         return 0;
+    }
+
+    if (controloManual) {
+        caixa->controloManualGerente = CAIXA_COM_CONTROLO_MANUAL;
+        caixa->bloqueadaAutomaticamente = CAIXA_BLOQUEADA_AUTOMATICAMENTE;
     }
 
     if (caixaEstaFechada(caixa)) {
@@ -313,10 +315,10 @@ int fecharCaixa(SISTEMA *sistema, int idCaixa, int controloManual) {
 
     caixa->estado = CAIXA_FECHADA;
     caixa->tempoTotalEstimadoFila = 0;
-    caixa->bloqueadaAutomaticamente = controloManual ? CAIXA_BLOQUEADA_AUTOMATICAMENTE : CAIXA_NAO_BLOQUEADA_AUTOMATICAMENTE;
 
-    if (!controloManual) {
+    if (!controloManual && caixa->controloManualGerente != CAIXA_COM_CONTROLO_MANUAL) {
         caixa->controloManualGerente = CAIXA_SEM_CONTROLO_MANUAL;
+        caixa->bloqueadaAutomaticamente = CAIXA_NAO_BLOQUEADA_AUTOMATICAMENTE;
     }
 
     sistema->nCaixasAbertas = contarCaixasAbertas(sistema);
@@ -324,7 +326,39 @@ int fecharCaixa(SISTEMA *sistema, int idCaixa, int controloManual) {
 
     return 1;
 }
+// Coloca a caixa em modo automático, removendo o controlo manual e permitindo gestão automática
+int colocarCaixaEmAuto(SISTEMA *sistema, int idCaixa) {
+    CAIXA *caixa;
 
+    if (sistema == NULL) {
+        printf("Sistema invalido.\n");
+        return 0;
+    }
+
+    if (idCaixa < 0 || idCaixa >= sistema->config.N_CAIXAS) {
+        printf("Id de caixa invalido.\n");
+        return 0;
+    }
+
+    caixa = obterCaixaPorId(sistema, idCaixa);
+    if (caixa == NULL) {
+        printf("Caixa nao encontrada.\n");
+        return 0;
+    }
+
+    if (caixa->controloManualGerente == CAIXA_SEM_CONTROLO_MANUAL) {
+        printf("A caixa %d ja esta em modo automatico.\n", idCaixa);
+        return 1;
+    }
+
+    caixa->controloManualGerente = CAIXA_SEM_CONTROLO_MANUAL;
+    caixa->bloqueadaAutomaticamente = CAIXA_NAO_BLOQUEADA_AUTOMATICAMENTE;
+
+    printf("Caixa %d agora esta em modo automatico.\n", idCaixa);
+
+    return 1;
+}
+// Encaminha o cliente para a melhor caixa disponível (menor tempo estimado ou primeira aberta)
 int encaminharClienteParaMelhorCaixa(SISTEMA *sistema, CLIENTE *cliente) {
     CAIXA *caixaDestino;
 
@@ -343,7 +377,7 @@ int encaminharClienteParaMelhorCaixa(SISTEMA *sistema, CLIENTE *cliente) {
 
     return adicionarClienteNaCaixa(caixaDestino, cliente, sistema->tempoAtual);
 }
-
+// Adiciona um cliente à fila da caixa, atualizando seu estado e o tempo estimado de espera
 int adicionarClienteNaCaixa(CAIXA *caixa, CLIENTE *cliente, int instanteAtual) {
     if (caixa == NULL || cliente == NULL) {
         return 0;
@@ -363,7 +397,7 @@ int adicionarClienteNaCaixa(CAIXA *caixa, CLIENTE *cliente, int instanteAtual) {
     atualizarTempoEstimadoCaixa(caixa);
     return 1;
 }
-
+// Redistribui os clientes da fila de uma caixa para outras disponíveis, ao fechá-la
 int redistribuirClientesCaixaFechada(SISTEMA *sistema, int idCaixa) {
     CAIXA *caixaOrigem;
     CLIENTE *cliente;
@@ -397,7 +431,7 @@ int redistribuirClientesCaixaFechada(SISTEMA *sistema, int idCaixa) {
     atualizarTempoEstimadoCaixa(caixaOrigem);
     return totalRedistribuido;
 }
-
+// Inicia o atendimento do próximo cliente na fila se a caixa estiver disponível, fechando-a se necessário
 int iniciarAtendimentoSeNecessario(SISTEMA *sistema, CAIXA *caixa) {
     CLIENTE *cliente;
 
@@ -434,7 +468,7 @@ int iniciarAtendimentoSeNecessario(SISTEMA *sistema, CAIXA *caixa) {
     atualizarTempoEstimadoCaixa(caixa);
     return 1;
 }
-
+// Finaliza o atendimento de um cliente concluído, atualizando estatísticas e fechando a caixa se necessário
 int finalizarAtendimentoSeConcluido(SISTEMA *sistema, CAIXA *caixa) {
     CLIENTE *cliente;
 
@@ -483,8 +517,8 @@ int finalizarAtendimentoSeConcluido(SISTEMA *sistema, CAIXA *caixa) {
 
     return 1;
 }
-
-int calcularTempoRestanteClienteAtual(const CAIXA *caixa) {
+// Retorna o tempo restante de atendimento do cliente atual da caixa, ou 0 se não houver ou já terminou
+int calcularTempoRestanteClienteAtual(CAIXA *caixa) {
     if (caixa == NULL || caixa->clienteAtual == NULL) {
         return 0;
     }
@@ -495,8 +529,8 @@ int calcularTempoRestanteClienteAtual(const CAIXA *caixa) {
 
     return 0;
 }
-
-int calcularTempoEstimadoCaixa(const CAIXA *caixa) {
+// Calcula o tempo total estimado de espera na caixa somando o atendimento atual e os pagamentos dos clientes na fila
+int calcularTempoEstimadoCaixa(CAIXA *caixa) {
     ELEMENTO *atual;
     int tempoTotal = 0;
 
@@ -516,15 +550,15 @@ int calcularTempoEstimadoCaixa(const CAIXA *caixa) {
 
     return tempoTotal;
 }
-
-int obterNumeroClientesCaixa(const CAIXA *caixa) {
+// Retorna o número total de clientes na caixa, incluindo o cliente em atendimento e os que estão na fila
+int obterNumeroClientesCaixa(CAIXA *caixa) {
     if (caixa == NULL) {
         return 0;
     }
 
     return obterTamanhoFila(&caixa->fila) + (caixa->clienteAtual != NULL ? 1 : 0);
 }
-
+// Atualiza o tempo total estimado da fila da caixa com base no estado atual
 void atualizarTempoEstimadoCaixa(CAIXA *caixa) {
     if (caixa == NULL) {
         return;
@@ -532,7 +566,7 @@ void atualizarTempoEstimadoCaixa(CAIXA *caixa) {
 
     caixa->tempoTotalEstimadoFila = calcularTempoEstimadoCaixa(caixa);
 }
-
+// Adiciona um cliente ao histórico da caixa, mantendo a lista encadeada de atendimentos
 void adicionarClienteAoHistoricoCaixa(CAIXA *caixa, CLIENTE *cliente) {
     NO_HISTORICO_CLIENTE *novoNo;
 
@@ -558,7 +592,7 @@ void adicionarClienteAoHistoricoCaixa(CAIXA *caixa, CLIENTE *cliente) {
 
     caixa->historicoClientes.tamanho++;
 }
-
+// Associa e ativa um colaborador na caixa, tornando-o responsável pelo atendimento
 void ativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa) {
     CAIXA *caixa;
     COLABORADOR *colaborador;
@@ -580,7 +614,7 @@ void ativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa) {
     ativarColaborador(colaborador, idCaixa);
     caixa->operador = colaborador;
 }
-
+// Desativa o colaborador associado à caixa, removendo-o do atendimento
 void desativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa) {
     CAIXA *caixa;
     COLABORADOR *colaborador;

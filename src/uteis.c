@@ -4,13 +4,14 @@
 #include "uteis.h"
 #include <locale.h>
 
+// Limpa o buffer de entrada do teclado até ao fim da linha ou EOF
 void limparBufferEntrada(void) {
     int c;
 
     while ((c = getchar()) != '\n' && c != EOF) {
     }
 }
-
+// Lê uma string do utilizador com validação de tamanho e remoção de newline
 void lerString(char *mensagem, char *destino, int tamanho) {
     if (destino == NULL || tamanho <= 0) {
         return;
@@ -25,9 +26,18 @@ void lerString(char *mensagem, char *destino, int tamanho) {
         return;
     }
 
-    destino[strcspn(destino, "\r\n")] = '\0';
-}
+    if (strchr(destino, '\n') == NULL) {
+        int c;
+        while ((c = getchar()) != '\n' && c != EOF);
+    }
 
+    destino[strcspn(destino, "\r\n")] = '\0';
+
+    if (strlen(destino) == 0) {
+        printf("Entrada inválida.\n");
+    }
+}
+// Lê um valor float do utilizador com validação de intervalo e tratamento de entrada inválida
 void lerFloat(char *mensagem, float *destino, float min, float max) {
     float valor;
     int lido;
@@ -60,7 +70,7 @@ void lerFloat(char *mensagem, float *destino, float min, float max) {
         return;
     }
 }
-
+// Lê um inteiro do utilizador com validação de intervalo e tratamento de entrada inválida
 void lerInteiro(char *mensagem, int *destino, int min, int max) {
     int valor;
     int lido;
@@ -93,16 +103,16 @@ void lerInteiro(char *mensagem, int *destino, int min, int max) {
         return;
     }
 }
-
+// Limpa o ecrã da consola (Windows)
 void limparTela() {
     system("cls");
 }
-
+// Pausa a execução do programa até o utilizador pressionar ENTER
 void pausarTela() {
     printf("Prima ENTER para continuar...");
     getchar();
 }
-
+// Gera um número inteiro aleatório dentro do intervalo [min, max]
 int Aleatorio(int min, int max) {
     if (min > max) {
         return min;
@@ -110,7 +120,7 @@ int Aleatorio(int min, int max) {
 
     return min + rand() % (max - min + 1);
 }
-
+// Gera um timestamp formatado (YYYYMMDD_HHMMSS) com base na hora atual do sistema
 void gerarTimestampFormatado(char *buffer, int tamanho) {
     time_t agora;
     struct tm *infoTempo;
@@ -129,8 +139,8 @@ void gerarTimestampFormatado(char *buffer, int tamanho) {
 
     strftime(buffer, tamanho, "%Y%m%d_%H%M%S", infoTempo);
 }
-
-void copiarStringSeguro(char *destino, const char *origem, int tamanho) {
+// Copia uma string para outra de forma segura, garantindo terminação nula
+void copiarStringSeguro(char *destino, char *origem, int tamanho) {
     if (destino == NULL || origem == NULL || tamanho <= 0) {
         return;
     }
@@ -138,8 +148,8 @@ void copiarStringSeguro(char *destino, const char *origem, int tamanho) {
     strncpy(destino, origem, tamanho - 1);
     destino[tamanho - 1] = '\0';
 }
-
-void gerarNomeFicheiroComTimestamp(char *destino, int tamanho, const char *prefixo, const char *extensao) {
+// Gera um nome de ficheiro concatenando prefixo, timestamp e extensão
+void gerarNomeFicheiroComTimestamp(char *destino, int tamanho, char *prefixo, char *extensao) {
     char timestamp[30];
 
     if (destino == NULL || tamanho <= 0 || prefixo == NULL || extensao == NULL) {
@@ -149,7 +159,7 @@ void gerarNomeFicheiroComTimestamp(char *destino, int tamanho, const char *prefi
     gerarTimestampFormatado(timestamp, sizeof(timestamp));
     snprintf(destino, tamanho, "%s%s%s", prefixo, timestamp, extensao);
 }
-
+// Configura o ambiente da consola para UTF-8 e define a locale para português
 void configurarAmbienteUTF8() {
         system("chcp 65001 > nul");
         setlocale(LC_ALL, "pt_PT.UTF-8");

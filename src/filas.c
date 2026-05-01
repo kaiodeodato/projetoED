@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "filas.h"
 
+// Inicializa a fila, definindo início, fim e tamanho como vazios
 void inicializarFila(FILA *fila) {
     if (fila == NULL) {
         return;
@@ -11,23 +12,23 @@ void inicializarFila(FILA *fila) {
     fila->fim = NULL;
     fila->tamanho = 0;
 }
-
-int filaEstaVazia(const FILA *fila) {
+// Verifica se a fila está vazia
+int filaEstaVazia(FILA *fila) {
     if (fila == NULL) {
         return 1;
     }
 
     return fila->inicio == NULL;
 }
-
-int obterTamanhoFila(const FILA *fila) {
+// Retorna o tamanho atual da fila
+int obterTamanhoFila(FILA *fila) {
     if (fila == NULL) {
         return 0;
     }
 
     return fila->tamanho;
 }
-
+// Adiciona um cliente ao final da fila, criando um novo elemento e atualizando a estrutura
 int enfileirarCliente(FILA *fila, CLIENTE *cliente) {
     ELEMENTO *novoElemento;
 
@@ -51,7 +52,7 @@ int enfileirarCliente(FILA *fila, CLIENTE *cliente) {
     fila->tamanho++;
     return 1;
 }
-
+// Remove e retorna o cliente no início da fila, atualizando a estrutura da fila
 CLIENTE *desenfileirarCliente(FILA *fila) {
     ELEMENTO *elementoRemovido;
     CLIENTE *cliente;
@@ -73,7 +74,7 @@ CLIENTE *desenfileirarCliente(FILA *fila) {
 
     return cliente;
 }
-
+// Remove um cliente da fila pelo seu id, ajustando os ponteiros e o tamanho da fila
 int removerClienteDaFilaPorId(FILA *fila, int idCliente) {
     ELEMENTO *atual;
     ELEMENTO *anterior;
@@ -113,7 +114,7 @@ int removerClienteDaFilaPorId(FILA *fila, int idCliente) {
 
     return 0;
 }
-
+// Liberta toda a memória da fila, removendo todos os elementos e reinicializando a estrutura
 void libertarFila(FILA *fila) {
     ELEMENTO *atual;
     ELEMENTO *seguinte;
@@ -134,7 +135,7 @@ void libertarFila(FILA *fila) {
     fila->fim = NULL;
     fila->tamanho = 0;
 }
-
+// Cria e inicializa um novo elemento da fila associado a um cliente
 ELEMENTO *criarElementoFila(CLIENTE *cliente) {
     ELEMENTO *novoElemento;
 

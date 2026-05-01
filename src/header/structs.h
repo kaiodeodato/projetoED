@@ -58,6 +58,7 @@ typedef struct Estatisticas {
     int idCaixaMaisClientes;
     int idCaixaMaisProdutos;
     int idOperadorMenosAtendimentos;
+    int idOperadorMaisAtendimentos;
 } ESTATISTICAS;
 
 typedef struct Cliente {
@@ -126,9 +127,7 @@ typedef struct Caixa {
     float totalValorVendido;
     int totalProdutosOferecidos;
     float totalValorOferecido;
-
     COLABORADOR *operador;
-
     HISTORICO_CLIENTES_CAIXA historicoClientes;
 } CAIXA;
 
@@ -210,24 +209,19 @@ typedef struct ListaLogs {
 
 typedef struct Sistema {
     CONFIGURACAO config;
-
     BASE_CLIENTES baseClientes;
     BASE_PRODUTOS baseProdutos;
     BASE_COLABORADORES baseColaboradores;
-
     CAIXA *caixas;
     int nCaixasAbertas;
-
     int tempoAtual;
     ESTADO_SIMULACAO estadoSimulacao;
     int proximoIdClienteGerado;
     int velocidadeSimulacao;
     int ciclosDesdeUltimoRefresh;
-
     HASHTABLE clientesHash;
     ESTATISTICAS estatisticas;
     LISTA_CLIENTES_COMPRANDO clientesComprando;
-
     LISTA_LOGS logs;
 } SISTEMA;
 

@@ -12,6 +12,7 @@
 #include "uteis.h"
 #include "hashClientes.h"
 
+// Inicializa a simulação, resetando tempo, estado, estatísticas e registando o início no log
 void inicializarSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
@@ -26,7 +27,7 @@ void inicializarSimulacao(SISTEMA *sistema) {
 
     adicionarLog(&sistema->logs,sistema->tempoAtual,"SIMULACAO","Simulacao preparada");
 }
-
+// Executa o ciclo principal da simulação, processando eventos, atualizando a interface e controlando pausa e velocidade
 void executarSimulacao(SISTEMA *sistema) {
     int passoLoading = 0;
     int estavaPausada;
@@ -74,7 +75,7 @@ void executarSimulacao(SISTEMA *sistema) {
         Sleep(obterDelayPorVelocidade(sistema->velocidadeSimulacao));
     }
 }
-
+// Executa um ciclo da simulação, atualizando clientes, caixas, eventos e avançando o tempo do sistema
 void cicloSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
@@ -106,7 +107,7 @@ void cicloSimulacao(SISTEMA *sistema) {
 
     sistema->tempoAtual += CICLO_SIMULACAO_MINUTOS;
 }
-
+// Atualiza o estado dos clientes em compras durante a simulação
 void atualizarClientesEmComprasSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
@@ -114,7 +115,7 @@ void atualizarClientesEmComprasSimulacao(SISTEMA *sistema) {
 
     atualizarClientesEmCompras(&sistema->clientesComprando, sistema->tempoAtual);
 }
-
+// Move clientes que terminaram as compras para as filas das caixas durante a simulação
 void moverClientesParaFilas(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
@@ -122,7 +123,7 @@ void moverClientesParaFilas(SISTEMA *sistema) {
 
     processarClientesTerminadosEmCompras(sistema);
 }
-
+// Atualiza o tempo de atendimento dos clientes atualmente em atendimento em todas as caixas
 void atualizarCaixasSimulacao(SISTEMA *sistema) {
     int i;
 
@@ -138,7 +139,7 @@ void atualizarCaixasSimulacao(SISTEMA *sistema) {
         }
     }
 }
-
+// Finaliza os atendimentos concluídos nas caixas durante a simulação
 void finalizarAtendimentosSimulacao(SISTEMA *sistema) {
     int i;
 
@@ -150,7 +151,7 @@ void finalizarAtendimentosSimulacao(SISTEMA *sistema) {
         finalizarAtendimentoSeConcluido(sistema, &sistema->caixas[i]);
     }
 }
-
+// Inicia novos atendimentos nas caixas caso existam clientes na fila
 void iniciarNovosAtendimentosSimulacao(SISTEMA *sistema) {
     int i;
 
@@ -162,7 +163,7 @@ void iniciarNovosAtendimentosSimulacao(SISTEMA *sistema) {
         iniciarAtendimentoSeNecessario(sistema, &sistema->caixas[i]);
     }
 }
-
+// Aplica ofertas aos clientes em atendimento que cumprem os critérios definidos
 void aplicarOfertasSimulacao(SISTEMA *sistema) {
     int i;
 
@@ -182,7 +183,7 @@ void aplicarOfertasSimulacao(SISTEMA *sistema) {
         }
     }
 }
-
+// Avalia e executa possíveis mudanças de fila entre caixas durante a simulação
 void avaliarMudancasFilaSimulacao(SISTEMA *sistema) {
     int i;
 
@@ -225,7 +226,7 @@ void avaliarMudancasFilaSimulacao(SISTEMA *sistema) {
         }
     }
 }
-
+// Verifica condições para abertura automática de caixas e abre uma nova caixa se necessário
 void verificarAberturaCaixasSimulacao(SISTEMA *sistema) {
     CAIXA *caixa;
     int i;
@@ -259,7 +260,7 @@ void verificarAberturaCaixasSimulacao(SISTEMA *sistema) {
         registarAberturaAutomatica(&sistema->estatisticas);
     }
 }
-
+// Verifica condições para encerramento automático de caixas e encerra uma caixa se aplicável
 void verificarEncerramentoCaixasSimulacao(SISTEMA *sistema) {
     CAIXA *caixa;
 
@@ -284,7 +285,7 @@ void verificarEncerramentoCaixasSimulacao(SISTEMA *sistema) {
         registarEncerramentoAutomatico(&sistema->estatisticas);
     }
 }
-
+// Gera novos clientes durante a simulação e contabiliza quantos foram criados
 void gerarNovosClientesSimulacao(SISTEMA *sistema) {
     int totalGerados;
 
@@ -294,7 +295,7 @@ void gerarNovosClientesSimulacao(SISTEMA *sistema) {
 
     totalGerados = gerarNovosClientes(sistema);
 }
-
+// Atualiza as estatísticas globais da simulação com base no estado atual do sistema
 void atualizarEstatisticasSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
@@ -304,8 +305,9 @@ void atualizarEstatisticasSimulacao(SISTEMA *sistema) {
     calcularTempoMedioEspera(&sistema->estatisticas);
     atualizarEstatisticasCaixas(sistema);
     determinarOperadorMenosAtendimentos(sistema);
+    determinarOperadorMaisAtendimentos(sistema);
 }
-
+// Coloca a simulação em estado de pausa e regista o evento no log
 void pausarSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
@@ -313,14 +315,14 @@ void pausarSimulacao(SISTEMA *sistema) {
     sistema->estadoSimulacao = SIMULACAO_PAUSADA;
     adicionarLog(&sistema->logs,sistema->tempoAtual,"SIMULACAO","Simulacao pausada");
 }
-
+// Retoma a simulação e regista o evento no log do sistema
 void retomarSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
     }
     adicionarLog(&sistema->logs,sistema->tempoAtual,"SIMULACAO","Simulacao retomada");
 }
-
+// Encerra a simulação, atualiza o estado do sistema e regista o evento no log
 void encerrarSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
@@ -329,7 +331,7 @@ void encerrarSimulacao(SISTEMA *sistema) {
     adicionarLog(&sistema->logs,sistema->tempoAtual,"SIMULACAO","Simulacao encerrada");
     printf("Simulacao encerrada com sucesso.\n");
 }
-
+// Processa clientes que terminaram as compras, removendo-os da lista e encaminhando-os para as caixas
 void processarClientesTerminadosEmCompras(SISTEMA *sistema) {
     CLIENTE *cliente;
 
@@ -354,8 +356,8 @@ void processarClientesTerminadosEmCompras(SISTEMA *sistema) {
         cliente = obterPrimeiroClienteListaCompras(&sistema->clientesComprando);
     }
 }
-
-CAIXA *obterCaixaDestinoMudanca(SISTEMA *sistema, const CAIXA *caixaAtual) {
+// Determina a melhor caixa de destino para mudança de fila com base no tempo estimado de atendimento
+CAIXA *obterCaixaDestinoMudanca(SISTEMA *sistema, CAIXA *caixaAtual) {
     int i;
     CAIXA *melhorCaixa = NULL;
     int tempoAtualCaixa;
@@ -393,8 +395,8 @@ CAIXA *obterCaixaDestinoMudanca(SISTEMA *sistema, const CAIXA *caixaAtual) {
 
     return melhorCaixa;
 }
-
-CLIENTE *obterClienteNaPosicaoFila(const FILA *fila, int posicao) {
+// Retorna o cliente na posição indicada da fila, ou NULL se a posição não existir
+CLIENTE *obterClienteNaPosicaoFila(FILA *fila, int posicao) {
     ELEMENTO *atual;
     int indice = 1;
 
@@ -415,7 +417,7 @@ CLIENTE *obterClienteNaPosicaoFila(const FILA *fila, int posicao) {
 
     return NULL;
 }
-
+// Tenta mover um cliente de uma fila para outra caixa mais adequada, revertendo a operação em caso de falha
 int tentarMoverClienteDeFila(SISTEMA *sistema, CAIXA *caixaOrigem, CLIENTE *cliente) {
     CAIXA *caixaDestino;
 
@@ -442,7 +444,7 @@ int tentarMoverClienteDeFila(SISTEMA *sistema, CAIXA *caixaOrigem, CLIENTE *clie
 
     return 1;
 }
-
+// Procura uma caixa elegível para abertura automática, respeitando regras de estado e controlo manual
 CAIXA *obterCaixaParaAberturaAutomatica(SISTEMA *sistema) {
     int i;
 
@@ -470,7 +472,7 @@ CAIXA *obterCaixaParaAberturaAutomatica(SISTEMA *sistema) {
 
     return NULL;
 }
-
+// Seleciona a caixa mais adequada para encerramento automático com base na menor quantidade de clientes
 CAIXA *obterCaixaParaEncerramentoAutomatico(SISTEMA *sistema) {
     int i;
     CAIXA *melhor = NULL;
@@ -502,8 +504,8 @@ CAIXA *obterCaixaParaEncerramentoAutomatico(SISTEMA *sistema) {
 
     return melhor;
 }
-
-void mostrarPainelSimulacao(const SISTEMA *sistema) {
+// Exibe o painel principal da simulação com estado geral, estatísticas e informação detalhada das caixas
+void mostrarPainelSimulacao(SISTEMA *sistema) {
     int i;
     int totalMinutos;
     int dias;
@@ -559,10 +561,10 @@ void mostrarPainelSimulacao(const SISTEMA *sistema) {
     }
 
     for (i = 0; i < sistema->config.N_CAIXAS; i++) {
-        const CAIXA *caixa = &sistema->caixas[i];
+        CAIXA *caixa = &sistema->caixas[i];
 
         printf(
-            "Caixa %d | Estado=%d | Abertura=%s | Fila=%d | EmAtendimento=%d | Total=%d | Atendidos=%d\n",
+            "Caixa %d | Estado=%d | Abertura=%-7s | Fila=%d | EmAtendimento=%d | Total=%d | Atendidos=%d\n",
             caixa->id,
             caixa->estado,
             obterTextoControloCaixa(caixa),
@@ -573,7 +575,7 @@ void mostrarPainelSimulacao(const SISTEMA *sistema) {
         );
     }
 }
-
+// Lê entrada do teclado durante a simulação e pausa a execução caso a tecla 'P' seja pressionada
 void processarTeclaSimulacao(SISTEMA *sistema) {
     char tecla;
 
@@ -591,7 +593,7 @@ void processarTeclaSimulacao(SISTEMA *sistema) {
         pausarSimulacao(sistema);
     }
 }
-
+// Retorna o caractere usado para animar o indicador de loading da simulação
 char obterCharLoading(int passo) {
     switch (passo) {
         case 0: return '|';
@@ -601,7 +603,7 @@ char obterCharLoading(int passo) {
         default: return '|';
     }
 }
-
+// Calcula o atraso (delay) da simulação com base na velocidade, garantindo um valor mínimo de 1 ms
 int obterDelayPorVelocidade(int velocidade) {
     int delay;
 
@@ -617,7 +619,7 @@ int obterDelayPorVelocidade(int velocidade) {
 
     return delay;
 }
-
+// Reinicializa completamente o estado da simulação, limpando clientes, filas, caixas e estatísticas
 void reinicializarEstadoSimulacao(SISTEMA *sistema) {
     int i;
     BUCKET *bucketAtual;

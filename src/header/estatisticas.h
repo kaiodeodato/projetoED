@@ -17,6 +17,7 @@ void atualizarTempoEspera(ESTATISTICAS *estatisticas, int tempoEspera);
 void calcularTempoMedioEspera(ESTATISTICAS *estatisticas);
 void atualizarEstatisticasCaixas(SISTEMA *sistema);
 void determinarOperadorMenosAtendimentos(SISTEMA *sistema);
+void determinarOperadorMaisAtendimentos(SISTEMA *sistema);
 void atualizarMelhorCaixaClientes(SISTEMA *sistema);
 void atualizarMelhorCaixaProdutos(SISTEMA *sistema);
 

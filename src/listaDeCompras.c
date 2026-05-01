@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "listaDeCompras.h"
 
+// Inicializa a lista de clientes em compras, definindo início, fim e tamanho como vazios
 void inicializarListaClientesComprando(LISTA_CLIENTES_COMPRANDO *lista) {
     if (lista == NULL) {
         return;
@@ -11,15 +12,15 @@ void inicializarListaClientesComprando(LISTA_CLIENTES_COMPRANDO *lista) {
     lista->fim = NULL;
     lista->tamanho = 0;
 }
-
-int listaComprasEstaVazia(const LISTA_CLIENTES_COMPRANDO *lista) {
+// Verifica se a lista de clientes em compras está vazia
+int listaComprasEstaVazia(LISTA_CLIENTES_COMPRANDO *lista) {
     if (lista == NULL) {
         return 1;
     }
 
     return lista->inicio == NULL;
 }
-
+// Insere um cliente na lista de compras de forma ordenada pelo tempo previsto de fim das compras
 int inserirClienteOrdenadoListaCompras(LISTA_CLIENTES_COMPRANDO *lista, CLIENTE *cliente) {
     NO_CLIENTE_COMPRANDO *novoNo;
     NO_CLIENTE_COMPRANDO *atual;
@@ -66,15 +67,15 @@ int inserirClienteOrdenadoListaCompras(LISTA_CLIENTES_COMPRANDO *lista, CLIENTE 
     lista->tamanho++;
     return 1;
 }
-
-CLIENTE *obterPrimeiroClienteListaCompras(const LISTA_CLIENTES_COMPRANDO *lista) {
+// Retorna o primeiro cliente da lista de compras, ou NULL se estiver vazia
+CLIENTE *obterPrimeiroClienteListaCompras(LISTA_CLIENTES_COMPRANDO *lista) {
     if (lista == NULL || listaComprasEstaVazia(lista)) {
         return NULL;
     }
 
     return lista->inicio->cliente;
 }
-
+// Remove e retorna o primeiro cliente da lista de compras, atualizando a estrutura
 CLIENTE *removerPrimeiroClienteListaCompras(LISTA_CLIENTES_COMPRANDO *lista) {
     NO_CLIENTE_COMPRANDO *noRemovido;
     CLIENTE *cliente;
@@ -96,7 +97,7 @@ CLIENTE *removerPrimeiroClienteListaCompras(LISTA_CLIENTES_COMPRANDO *lista) {
 
     return cliente;
 }
-
+// Atualiza o tempo restante de compras de todos os clientes na lista com base no instante atual
 void atualizarClientesEmCompras(LISTA_CLIENTES_COMPRANDO *lista, int instanteAtual) {
     NO_CLIENTE_COMPRANDO *atual;
 
@@ -119,15 +120,15 @@ void atualizarClientesEmCompras(LISTA_CLIENTES_COMPRANDO *lista, int instanteAtu
         atual = atual->seguinte;
     }
 }
-
-int clienteTerminouComprasLista(const CLIENTE *cliente, int instanteAtual) {
+// Verifica se o cliente terminou as compras com base no instante atual
+int clienteTerminouComprasLista(CLIENTE *cliente, int instanteAtual) {
     if (cliente == NULL) {
         return 0;
     }
 
     return instanteAtual >= cliente->instantePrevistoFimCompras;
 }
-
+// Liberta toda a memória da lista de clientes em compras e reinicializa a estrutura
 void libertarListaClientesComprando(LISTA_CLIENTES_COMPRANDO *lista) {
     NO_CLIENTE_COMPRANDO *atual;
     NO_CLIENTE_COMPRANDO *seguinte;
@@ -148,7 +149,7 @@ void libertarListaClientesComprando(LISTA_CLIENTES_COMPRANDO *lista) {
     lista->fim = NULL;
     lista->tamanho = 0;
 }
-
+// Cria e inicializa um novo nó da lista de clientes em compras associado a um cliente
 NO_CLIENTE_COMPRANDO *criarNoClienteComprando(CLIENTE *cliente) {
     NO_CLIENTE_COMPRANDO *novoNo;
 

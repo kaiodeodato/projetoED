@@ -23,16 +23,16 @@ void pausarSimulacao(SISTEMA *sistema);
 void retomarSimulacao(SISTEMA *sistema);
 void encerrarSimulacao(SISTEMA *sistema);
 void processarClientesTerminadosEmCompras(SISTEMA *sistema);
-CAIXA *obterCaixaDestinoMudanca(SISTEMA *sistema, const CAIXA *caixaAtual);
-CLIENTE *obterClienteNaPosicaoFila(const FILA *fila, int posicao);
+CAIXA *obterCaixaDestinoMudanca(SISTEMA *sistema, CAIXA *caixaAtual);
+CLIENTE *obterClienteNaPosicaoFila(FILA *fila, int posicao);
 int tentarMoverClienteDeFila(SISTEMA *sistema, CAIXA *caixaOrigem, CLIENTE *cliente);
 CAIXA *obterCaixaParaAberturaAutomatica(SISTEMA *sistema);
 CAIXA *obterCaixaParaEncerramentoAutomatico(SISTEMA *sistema);
-void mostrarPainelSimulacao(const SISTEMA *sistema);
+void mostrarPainelSimulacao(SISTEMA *sistema);
 void processarTeclaSimulacao(SISTEMA *sistema);
 char obterCharLoading(int passo);
 int obterDelayPorVelocidade(int velocidade);
-char *obterTextoControloCaixa(const CAIXA *caixa);
+char *obterTextoControloCaixa(CAIXA *caixa);
 void reinicializarEstadoSimulacao(SISTEMA *sistema);
 
 #endif

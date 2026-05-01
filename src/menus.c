@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "menus.h"
 #include "uteis.h"
 #include "historico.h"
 #include "config.h"
 #include "ficheiros.h"
+#include "main.h"
 #include "caixas.h"
 #include "simulacao.h"
 #include "define.h"
@@ -15,15 +17,14 @@
 #include "colaboradores.h"
 #include "memoria.h"
 
-void gerarSaidasFinais(SISTEMA *sistema);
-
+// Lê e retorna uma opção válida do menu dentro do intervalo especificado
 int lerOpcaoMenu(int min, int max) {
     int opcao = 0;
 
     lerInteiro("Opcao: ", &opcao, min, max);
     return opcao;
 }
-
+// Mostra o menu principal na tela com as opções disponíveis ao utilizador
 void mostrarMenuPrincipal() {
     limparTela();
     mostrarCabecalho("MENU PRINCIPAL");
@@ -32,10 +33,11 @@ void mostrarMenuPrincipal() {
     printf("3. Encerrar simulacao\n");
     printf("4. Mostrar estado resumido\n");
     printf("5. Gestao administrativa\n");
+    printf("6. Alterar velocidade da simulacao\n");
     printf("0. Sair\n");
     printf("%s", LINHA_SEPARADORA);
 }
-
+// Executa a opção escolhida no menu principal, controlando ações da simulação e gestão do sistema
 void executarOpcaoMenu(SISTEMA *sistema, int opcao) {
     if (sistema == NULL) {
         return;
@@ -53,7 +55,7 @@ void executarOpcaoMenu(SISTEMA *sistema, int opcao) {
                 retomarSimulacao(sistema);
                 executarSimulacao(sistema);
             } else {
-                printf("A simulacao nao esta pausada.\n");
+                printf("Nao ha simulacao pausada para retomar.\n");
                 pausarTela();
             }
             break;
@@ -73,6 +75,11 @@ void executarOpcaoMenu(SISTEMA *sistema, int opcao) {
             executarMenuGestao(sistema);
             break;
 
+        case 6:
+            alterarVelocidadeSimulacao(sistema);
+            adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU","Alterar Velocidade Simulação");
+            break;
+
         case 0:
             adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU", "Saida do programa");
             break;
@@ -82,7 +89,7 @@ void executarOpcaoMenu(SISTEMA *sistema, int opcao) {
             break;
     }
 }
-
+// Mostra o menu de gestão administrativa com opções de configuração e controlo do sistema
 void mostrarMenuGestao() {
     limparTela();
     mostrarCabecalho("MENU DE GESTAO");
@@ -90,7 +97,7 @@ void mostrarMenuGestao() {
     printf("2. Adicionar produto base\n");
     printf("3. Abrir caixa manualmente\n");
     printf("4. Fechar caixa manualmente\n");
-    printf("5. Alterar velocidade da simulacao\n");
+    printf("5. Passar caixa a AUTO\n");
     printf("6. Pesquisar cliente ativo\n");
     printf("7. Listar todos os clientes\n");
     printf("8. Mostrar estatisticas da simulacao\n");
@@ -98,7 +105,7 @@ void mostrarMenuGestao() {
     printf("0. Voltar\n");
     printf("%s", LINHA_SEPARADORA);
 }
-
+// Executa o menu de gestão, permitindo operações administrativas enquanto regista ações no log do sistema
 void executarMenuGestao(SISTEMA *sistema) {
     int opcao = -1;
 
@@ -134,10 +141,11 @@ void executarMenuGestao(SISTEMA *sistema) {
                 adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU","Fechar Caixa Manual");
                 pausarTela();
                 break;
-
+            
             case 5:
-                alterarVelocidadeSimulacao(sistema);
-                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU","Alterar Velocidade Simulação");
+                colocarCaixaEmAutoUI(sistema);
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU", "Caixa colocada em controlo automatico");
+                pausarTela();
                 break;
 
             case 6:
@@ -174,7 +182,7 @@ void executarMenuGestao(SISTEMA *sistema) {
         }
     }
 }
-
+// Adiciona um novo cliente à base de dados, garantindo capacidade dinâmica e gravando o resultado no ficheiro
 void adicionarClienteBaseMenu(SISTEMA *sistema) {
     CLIENTE_BASE *novosDados;
     int novaCapacidade;
@@ -191,10 +199,7 @@ void adicionarClienteBaseMenu(SISTEMA *sistema) {
             ? CAPACIDADE_INICIAL_CLIENTES_BASE
             : sistema->baseClientes.capacidade * FATOR_CRESCIMENTO_VETORES;
 
-        novosDados = (CLIENTE_BASE *)realloc(
-            sistema->baseClientes.dados,
-            sizeof(CLIENTE_BASE) * novaCapacidade
-        );
+        novosDados = (CLIENTE_BASE *)realloc(sistema->baseClientes.dados,sizeof(CLIENTE_BASE) * novaCapacidade);
 
         if (novosDados == NULL) {
             printf("Erro ao alocar memoria para clientes base.\n");
@@ -221,7 +226,7 @@ void adicionarClienteBaseMenu(SISTEMA *sistema) {
         printf("Cliente base adicionado, mas erro ao guardar no ficheiro.\n");
     }
 }
-
+// Adiciona um novo produto à base de dados, gerindo memória dinâmica e persistindo os dados em ficheiro
 void adicionarProdutoBaseMenu(SISTEMA *sistema) {
     PRODUTO *novosDados;
     int novaCapacidade;
@@ -244,10 +249,7 @@ void adicionarProdutoBaseMenu(SISTEMA *sistema) {
             ? CAPACIDADE_INICIAL_PRODUTOS_BASE
             : sistema->baseProdutos.capacidade * FATOR_CRESCIMENTO_VETORES;
 
-        novosDados = (PRODUTO *)realloc(
-            sistema->baseProdutos.dados,
-            sizeof(PRODUTO) * novaCapacidade
-        );
+        novosDados = (PRODUTO *)realloc(sistema->baseProdutos.dados,sizeof(PRODUTO) * novaCapacidade);
 
         if (novosDados == NULL) {
             printf("Erro ao alocar memoria para produtos base.\n");
@@ -279,7 +281,7 @@ void adicionarProdutoBaseMenu(SISTEMA *sistema) {
         printf("Produto base adicionado, mas erro ao guardar no ficheiro.\n");
     }
 }
-
+// Abre manualmente uma caixa selecionada pelo utilizador, registando a ação no sistema
 void abrirCaixaManual(SISTEMA *sistema) {
     int idCaixa;
 
@@ -292,12 +294,7 @@ void abrirCaixaManual(SISTEMA *sistema) {
         return;
     }
 
-    lerInteiro(
-        "Id da caixa a abrir: ",
-        &idCaixa,
-        0,
-        sistema->config.N_CAIXAS - 1
-    );
+    lerInteiro("Id da caixa a abrir: ",&idCaixa,0,sistema->config.N_CAIXAS - 1);
 
     if (abrirCaixa(sistema, idCaixa, CAIXA_COM_CONTROLO_MANUAL)) {
         adicionarLog(&sistema->logs, sistema->tempoAtual, "GESTAO", "Caixa aberta manualmente");
@@ -306,7 +303,7 @@ void abrirCaixaManual(SISTEMA *sistema) {
         printf("Nao foi possivel abrir a caixa %d.\n", idCaixa);
     }
 }
-
+// Coloca uma caixa em encerramento manual, registando a ação e validando a operação
 void fecharCaixaManual(SISTEMA *sistema) {
     int idCaixa;
 
@@ -319,12 +316,7 @@ void fecharCaixaManual(SISTEMA *sistema) {
         return;
     }
 
-    lerInteiro(
-        "Id da caixa a fechar: ",
-        &idCaixa,
-        0,
-        sistema->config.N_CAIXAS - 1
-    );
+    lerInteiro("Id da caixa a fechar: ",&idCaixa,0,sistema->config.N_CAIXAS - 1);
 
     if (encerrarCaixa(sistema, idCaixa, CAIXA_COM_CONTROLO_MANUAL)) {
         adicionarLog(&sistema->logs, sistema->tempoAtual, "GESTAO", "Caixa colocada em encerramento manual");
@@ -333,16 +325,16 @@ void fecharCaixaManual(SISTEMA *sistema) {
         printf("Nao foi possivel encerrar a caixa %d.\n", idCaixa);
     }
 }
-
-void mostrarCabecalho(const char *titulo) {
+// Imprime um cabeçalho formatado com um título e linhas separadoras no terminal
+void mostrarCabecalho(char *titulo) {
     printf("\n%s", LINHA_SEPARADORA);
     if (titulo != NULL) {
         printf("%s\n", titulo);
     }
     printf("%s", LINHA_SEPARADORA);
 }
-
-void mostrarEstadoResumidoSistema(const SISTEMA *sistema) {
+// Mostra um resumo do estado atual da simulação, incluindo tempo, estatísticas e estado das caixas
+void mostrarEstadoResumidoSistema(SISTEMA *sistema) {
     int i;
     int totalMinutos;
     int dias;
@@ -406,7 +398,7 @@ void mostrarEstadoResumidoSistema(const SISTEMA *sistema) {
 
     pausarTela();
 }
-
+// Pesquisa e mostra os dados de um cliente ativo na hash, incluindo estado, caixa e produtos
 void pesquisarClienteAtivoMenu(SISTEMA *sistema) {
     int idCliente;
     CLIENTE *cliente;
@@ -460,8 +452,8 @@ void pesquisarClienteAtivoMenu(SISTEMA *sistema) {
             cliente->produtos[i].preco);
     }
 }
-
-void listarTodosClientesMenu(const SISTEMA *sistema) {
+// Lista todos os clientes ativos na hash com paginação, permitindo navegação entre páginas no menu
+void listarTodosClientesMenu(SISTEMA *sistema) {
     CLIENTE **lista;
     BUCKET *bucketAtual;
     int total = 0;
@@ -544,7 +536,7 @@ void listarTodosClientesMenu(const SISTEMA *sistema) {
 
     free(lista);
 }
-
+// Permite alterar a velocidade da simulação através de um menu de opções predefinidas
 void alterarVelocidadeSimulacao(SISTEMA *sistema) {
     int opcao;
 
@@ -592,7 +584,7 @@ void alterarVelocidadeSimulacao(SISTEMA *sistema) {
     );
     pausarTela();
 }
-
+// Converte o valor da velocidade da simulação para uma string legível
 char *obterTextoVelocidade(int velocidade) {
     switch (velocidade) {
         case VELOCIDADE_SIMULACAO_1X:
@@ -609,9 +601,10 @@ char *obterTextoVelocidade(int velocidade) {
             return "desconhecida";
     }
 }
-
+// Mostra o menu de estatísticas da simulação, calculando e exibindo métricas e dados de operadores e clientes
 void mostrarEstatisticasSimulacaoMenu(SISTEMA *sistema) {
     COLABORADOR *operador;
+    COLABORADOR *operadorMais;
     CLIENTE *clienteMaisGastou = NULL;
     CLIENTE *clienteMenosGastou = NULL;
     int i;
@@ -667,6 +660,12 @@ void mostrarEstatisticasSimulacaoMenu(SISTEMA *sistema) {
         sistema->estatisticas.idOperadorMenosAtendimentos
     );
 
+      operadorMais = obterColaboradorPorId(
+        (SISTEMA *)sistema,
+        sistema->estatisticas.idOperadorMaisAtendimentos
+    );
+
+
     if (operador != NULL) {
         printf(
             "Operador com menos atendimentos: %d - %s (%d atendimentos)\n",
@@ -680,6 +679,21 @@ void mostrarEstatisticasSimulacaoMenu(SISTEMA *sistema) {
             sistema->estatisticas.idOperadorMenosAtendimentos
         );
     }
+
+    if (operadorMais != NULL) {
+        printf(
+            "Operador com mais atendimentos: %d - %s (%d atendimentos)\n",
+            operadorMais->id,
+            operadorMais->nome,
+            operadorMais->clientesAtendidos
+        );
+    } else {
+        printf(
+            "Operador com mais atendimentos: %d\n",
+            sistema->estatisticas.idOperadorMaisAtendimentos
+        );
+    }
+
     if (clienteMaisGastou != NULL) {
         printf(
             "Cliente que mais gastou: %06d - %s (%.2f)\n",
@@ -702,8 +716,8 @@ void mostrarEstatisticasSimulacaoMenu(SISTEMA *sistema) {
         printf("Cliente que menos gastou: nenhum cliente atendido\n");
     }
 }
-
-void mostrarRelatorioMemoriaMenu(const SISTEMA *sistema) {
+// Mostra no menu o relatório de memória estimada do sistema, detalhando consumo por estruturas
+void mostrarRelatorioMemoriaMenu(SISTEMA *sistema) {
     size_t memoriaClientesAtivos = 0;
     size_t memoriaFilas = 0;
     size_t memoriaHash = 0;
@@ -763,4 +777,28 @@ void mostrarRelatorioMemoriaMenu(const SISTEMA *sistema) {
     printf("  Lista de compras: %zu bytes\n", memoriaListaCompras);
     printf("  Logs: %zu bytes\n", memoriaLogs);
     printf("  Clientes ativos e produtos associados: %zu bytes\n", memoriaClientesAtivos);
+}
+// Interface para colocar uma caixa em modo automático, registando a ação no log do sistema
+int colocarCaixaEmAutoUI(SISTEMA *sistema) {
+    int idCaixa;
+
+    if (sistema == NULL) {
+        printf("Sistema invalido.\n");
+        return 0;
+    }
+
+    if (sistema->config.N_CAIXAS <= 0) {
+        printf("Nao existem caixas configuradas.\n");
+        return 0;
+    }
+
+    lerInteiro("Id da caixa: ",&idCaixa,0,sistema->config.N_CAIXAS - 1);
+
+    if (colocarCaixaEmAuto(sistema, idCaixa)) {
+        adicionarLog(&sistema->logs, sistema->tempoAtual, "GESTAO", "Caixa colocada em controlo automatico");
+        return 1;
+    }
+
+    printf("Nao foi possivel alterar a caixa %d.\n", idCaixa);
+    return 0;
 }

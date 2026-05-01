@@ -1,134 +1,366 @@
 
-// a cada 1 segundo, será gerado um numero aleatório de 0 a 3, que será a quantidade de clientes que entrarao no supermercado.
-// juntamente com esse numero de clientes, tb será gerado um numero aleatório para cada cliente, para se definir seu nome no vetor salvo do arquivo (clientes.txt) e 
-// para cada cliente tambem será gerado um numero aleatorio de 1 até 10 para se definir quantos produtos esse cliente vai comprar.
-// feito isso, serão gerados a quantidade de produtos sorteada de numeros aleatorios para se selecionar os nomes dos produtos a serem comprados no vetor produtos 
-// salvo do arquivo (produtos.txt), dessa forma, quando o cliente estiver pronto ele tera um nome, um id, e uma lista de produtos, o que nos dara algumas informaçoes importantes
-// como a hora de entrada, a quantidade de tempo para achar todos os produtos, a quantidade de tempo para pagar todos os produtos, instante previsto de fim de compras e alguns outros dados.
+Kaio	    
+simulacao.c, 
+listaDeCompras.c, 
+estatisticas.c, 
+config.c, 
+historico.c	
+   
+Ana	        
+caixas.c, 
+hashClientes.c, 
+filas.c, 
+memoria.c, 
+produtos.c, 
+uteis.c	                    
+      
 
-// lembrando que os nomes dos clientes serão tirados do vetor proveniente de um arquivo txt disponibilizado, podendo ser sortiado o mesmo cliente que já esta na loja,
-// nesse caso, será necessário a checagem em cada sorteio por meio de uma função que check se o cliente já nao esta na loja. uma vez que o cliente já saiu, ele pode ser sorteado novamente.
-// produtos sorteados multiplas vezes não implicam problema algum.
-// importante ressaltar que os produtos estaram em uma lista ordenada por ordem de preco crescente, ou seja , o primeiro produto será sempre o mais barato na lista do cliente.
-// assim que o cliente "entrar na loja" ele será inserido em uma lista chamada algo como "listaClientesComprando" e na hashClientesAtivos, que terá todos os clientes dentro do estabelecimento
-// juntamente com seu status e outras informações necessasrias , esse novo cliente entrara de maneira ordenada nessa lista em relação ao instante 
-// previsto de fim de compras, dessa forma , essa lista ordenada, sempre sairá o primeiro cliente, que será checado a cada loop de 1 segundo e se o tempo de coleta
-// de produtos já acabou, será mandado para uma caixa.
+Afonso	    
+clientes.c, 
+menus.c, 
+ficheiros.c, 
+colaboradores.c, 
+main.c	                                            
 
-// lista de caixas (onde cada caixa tem uma fila de clientes esperando para pagar e um pagando (head), cliente entra no fim e sai no inicio (fila))
-// cada caixa tera um operador associado, salvo no arquivo colaboradores, e nesse mesmo arquivo tera a qual caixa ele pertence e seu id.
-// o cliente que esta no head, esperara os segundo totais para pagamento de todos os seus produtos e logo após será removido da fila da caixa, deixando a fila menor.
-// o cliente que acabou de recolher os produtos, será direcionado para a caixa com menos tempo acumulado de tempo de pagamento no total da fila, ou seja, cada caixa terá um valor de tempo 
-//total estimado de espera, correspondente ao tempo restante do cliente atualmente em atendimento, somado ao tempo de pagamento de todos os clientes que aguardam na fila.
-// o numero de filas será inicialmente 1, valor minimo de caixas, e se o numero médio de clientes por fila, checado a cada loop, ultrapassar um determinado valor MAX_FILA, será aberta uma nova fila.
-// Se o número médio de clientes na fila por caixa aberta for inferior a um dado valor MIN_FILA a caixa que tiver menos pessoas deve fechar (depois de atender as pessoas que tem em espera); 
-// tambem é possivel que um caixa seja aberto por ação do menu dessa forma, a struct da caixa tem que ter uma propriedade como "controleManualGerente" que faça com que aquela caixa nao seja
-// fechada automaticamente, apenas por intervençao do menu outra vez.
-
-// no menu será possivel tambem adicionar clientes e produtos nos vetores base salvos em memoria, e assim que a simulação for pausada ou acabar, 
-// esses dados serão salvos nos arquivos clientes.txt e produtos.txt, de maneira a ter as informações adicionadas salvas para futuras simulações.
-// quando um cliente chegar ao head de uma caixa para ser atendido, será calculado o tempo da propriedade "tempo que entrou na fila" até o tempo atual, 
-// se esse tempo for maior do que  MAX_ESPERA, o cliente ganhará o produto de menor valor, e esse valor será contabilizado tanto em numero de produtos oferecidos 
-// quanto em valor total. salvo em sistema. 
-// a oferta ocorre apenas uma unica vez.
-// em algum momento, um cliente que esta a espera em uma fila pode mudar de fila, respeitando os seguintes critérios, só muda se a diferença de espera for superior a 
-// DIFERENÇA_TEMPO_CAIXAS segundos, só muda se não estiver na primeira ou segunda posição da fila e só pode mudar uma vez. o que nos leva a uma outra propriedade necessaria em clients
-// algo como "mudouDeFila"
-// as caixas possuem 3 estados, aberta (recebe cliente e faz pagamentos), em encerramento (não recebe clientes e faz pagamentos) e fechada (não recebe clientes e nao faz pagamentos), 
-// uma propriedade tambem muito importante das caixas será controleManualGerente, ou algo assim, que significa que o status que ela esta foi o gerente que  pos, 
-// e que essa caixa nao será afetada com possiveis alterações automaticas de fecho ou abertura do sistema.
-// o encerramento não aceita mais clientes e faz o pagamento de todos os clientes que já estao na fila, o fecho, encerra totalmente as atividades e faz a redistribuição dos clientes 
-// pelas outras filas, de maneira a manter a menor media possivel de espera em todas as caixas que estejam abertas. essa opção de encerrar forçada só poderá ser realizada pelo menu na pausa 
-// da simulação, e igualmente, uma caixa fechada no menu, não poderá ser aberta de forma automatica, receberá uma flag de controleManualGerente ou algo assim.
-
-// tudo que o utilizador faz no menu do programa vai para um histórico (gravar em *.csv) de cada açao no menu.
-// determinar a memória utilizada pelo programa e determinar a memória desperdiçada
-// memória usada = soma da memória efetivamente ocupada pelas estruturas alocadas
-// memória desperdiçada = capacidade alocada mas não usada em vetores dinâmicos, buckets vazios, histórico com capacidade sobrando, etc.
-// quando a simulação for pausada, poderá se fazer alguma alteraçao e depois voltar para ela ou encerra-la, dessa forma, com o encerramento da simulação se gerará um arquivo chamado Estatisticas_simulação_dia_hora_ano_minuto_segundo.txt com 
-•  Determinar qual a caixa que atendeu mais pessoas; 
-•  Determinar qual a caixa que vendeu mais produtos; 
-•  Listar todas as pessoas atendidas por uma caixa; 
-•  Determinar qual o nome do operador de caixa que atendeu menos pessoas; 
-•  O número de produtos oferecidos e respetivo valor; 
-
-dentro do loop, a ordem das açoes será assim:
-
-Atualizar clientes em compras e identificar os que terminaram.
-Mover clientes concluídos para a melhor fila de caixa.
-Atualizar atendimentos em curso nas caixas.
-Finalizar clientes atendidos e iniciar novos atendimentos.
-Verificar e aplicar oferta por MAX_ESPERA no início do atendimento.
-Avaliar possíveis mudanças de fila entre caixas.
-Verificar abertura automática de novas caixas (MAX_FILA).
-Verificar encerramento automático de caixas (MIN_FILA).
-Gerar novos clientes e inseri-los na lista de compras e na hash.
-Atualizar estatísticas globais e registar eventos.
-
-compras → filas → caixas → oferta → trocas → abrir/fechar → novos clientes → estatísticas
-quando o programa abrir serao sorteados 6 funcionarios que serao associados as caixas 1 até 6 durante aquela simulação, no final, os dados relativos a caixa serão associados
-com o colaborador em serviço naquela caixa, caso a caixa seja fechada, o colaborador ficara inativo juntamente com a caixa, sendo ativo novamente
-com uma nova abertura da caixa. esse time de 6 funcionarios será entendido como equipa de plantão no dia.
+Essa divisão está boa porque distribui os ficheiros mais importantes de forma equilibrada entre os três elementos, garantindo que cada um fica responsável por um módulo mais complexo (simulacao.c, caixas.c e clientes.c) acompanhado por ficheiros de menor dificuldade. Assim, o trabalho fica mais justo não só pelo número de funções, mas também pela complexidade, evitando sobrecarga em apenas uma pessoa.
 
 
-implementar lista de clientes em todas as caixas
-separar "histórico do utilizador” de “eventos da simulação"
-verificar a questao dos arquivos clientes e produtos estarem sendo escritos sem cabeçalho
-adicionar cliente e produto pede apenas as informações necessarias, o id é automatico
+A simulação foi modelada em ciclos discretos, onde cada ciclo representa 1 minuto de tempo simulado. Esta abordagem permite manter a lógica do sistema simples, consistente e previsível, ao mesmo tempo que melhora a leitura dos resultados e o comportamento das filas. A execução segue um modelo híbrido, em que cada ciclo corresponde a uma unidade lógica de tempo, mas é desacoplada da escala real através de um controlo de velocidade configurável, permitindo acelerar a simulação até 500x. Esta combinação assegura coerência temporal na lógica interna, enquanto possibilita interação em tempo real, visualização dinâmica e análise de diferentes cenários de execução e carga.
 
-“A simulação foi modelada em ciclos discretos onde cada ciclo representa 1 minuto de tempo simulado.
-Isso permite manter a lógica do sistema simples e consistente, ao mesmo tempo que melhora a leitura dos resultados e o comportamento das filas.
-A velocidade de execução foi desacoplada da escala temporal, permitindo acelerar a simulação sem perder coerência lógica.”
+Em cada ciclo de simulação, o sistema executa um fluxo sequencial de atualização do estado global. Inicialmente, é atualizada a lista de clientes em compras, verificando quais terminaram o processo de aquisição de produtos. Esses clientes são armazenados numa lista ordenada por instante previsto de fim de compras, o que permite que o primeiro elemento da lista seja sempre o próximo a sair. Quando um cliente termina as compras, ele é removido desta lista e encaminhado para a melhor fila de caixa disponível, com base no menor tempo estimado de espera, simulando o que seria um cliente a escolher a caixa em que parece que a demora será menor.
 
-A simulação funciona em ciclos, onde cada ciclo representa um avanço no tempo.
-O sistema utiliza minutos como unidade interna, mas esses minutos são uma abstração e comportam-se mais como segundos reais, permitindo uma simulação mais rápida e dinâmica.
-Em cada ciclo, todo o estado do sistema é atualizado — clientes, filas, caixas e estatísticas.
-O tempo total é acumulado ao longo dos ciclos e depois convertido para dias, horas e minutos para apresentação.
+A geração de clientes ocorre de forma aleatória. Em cada ciclo existe uma probabilidade de 25% de ocorrer a entrada de novos clientes. Quando essa condição é satisfeita, é sorteado um número entre 0 e 3 clientes. Para cada cliente gerado, é selecionado aleatoriamente um nome a partir do ficheiro de clientes previamente carregado em memória, sendo feita validação para evitar a duplicação de clientes ativos no sistema. Cada cliente recebe também um conjunto aleatório de produtos, entre 1 e 20 (valor configurável), selecionados do ficheiro de produtos. Os produtos são organizados por ordem de preço crescente dentro do “carrinho” do cliente, garantindo que o produto mais barato seja sempre considerado primeiro em situações de oferta, o que representa uma decisão de projeto orientada à lógica de otimização do sistema e ao interesse do cenário simulado.
 
-Ao aumentar o número de caixas de 6 para 7, mantendo a mesma taxa de entrada de clientes, o sistema apresentou uma melhoria significativa. O tempo médio de espera desceu de valores críticos para cerca de 23 minutos e deixou de haver produtos oferecidos. Isso mostra que a simulação é sensível à capacidade de atendimento e permite avaliar o impacto direto da abertura de novas caixas.
+Foi implementado um limite máximo de clientes no sistema através da constante MAX_CLIENTES_MERCADO, definida no ficheiro de configurações. Este limite é verificado no momento da geração de novos clientes, impedindo a entrada de mais clientes quando a capacidade máxima do supermercado é atingida. A validação é realizada com base no número de clientes ativos armazenados na hash table, garantindo que todos os clientes presentes no sistema — independentemente de estarem em compras, em fila ou em atendimento — são considerados. Esta abordagem permite simular restrições físicas do espaço do supermercado, contribuindo para um comportamento mais realista e controlado da simulação.
 
-Para tornar a entrada de clientes mais realista e evitar crescimento excessivo das filas num único instante, foi adotada uma regra complementar de chegada estocástica: em cada ciclo de simulação de 1 minuto, existe 25% de probabilidade de ocorrer entrada de novos clientes. Quando essa entrada ocorre, o número de clientes gerados é sorteado no intervalo configurado entre 0 e 3 clientes.
+Cada cliente passa a possuir um conjunto de informações essenciais, como identificador, nome, lista de produtos, valor total da compra, tempos de entrada, tempo estimado de conclusão de compras e tempos associados ao atendimento e pagamento. O tempo total de permanência do cliente na loja é calculado com base no tempo de procura e pagamento de cada produto.
 
-Atendente com menor numero de clientes nao presente nas caixas
+Durante a execução da simulação foi implementado um mecanismo de controlo em tempo real através do teclado, permitindo ao utilizador pausar o sistema pressionando a tecla “P” durante o ciclo ativo. Este comportamento é detetado de forma assíncrona, sem interromper o fluxo principal da simulação, garantindo assim uma interação contínua com o utilizador e permitindo o acesso imediato ao menu de controlo durante a execução.
 
+Foi também implementado um indicador visual de execução (loading spinner), baseado numa sequência de caracteres rotativos, como |, /, - e . Este elemento é atualizado a cada ciclo da simulação e tem como objetivo fornecer feedback visual ao utilizador, demonstrando que o sistema se encontra em processamento ativo e reforçando a perceção de tempo real durante a execução do simulador.
 
+A hash de clientes do sistema é uma tabela de dispersão com encadeamento, onde cada cliente é armazenado através de uma chave única correspondente ao seu identificador (ID). Essa chave é utilizada na função de dispersão indice = chave % nBuckets, que determina o bucket onde o cliente será armazenado. Cada bucket contém uma lista ligada não ordenada de nós (HASHNODE), onde cada nó guarda um ponteiro para um cliente e uma referência para o próximo nó, permitindo resolver colisões através de encadeamento. Assim, vários clientes podem ser armazenados no mesmo bucket sem perda de informação. O número de buckets (nBuckets) influencia diretamente o desempenho da estrutura, reduzindo colisões e melhorando a eficiência das operações de pesquisa, inserção e remoção.
 
+As filas das caixas são implementadas como listas ligadas FIFO, onde cada caixa possui a sua própria fila de clientes. Cada caixa contém ainda um cliente em atendimento, histórico de clientes atendidos e métricas associadas ao desempenho da caixa. O cliente em atendimento representa o “head” da fila, enquanto os restantes clientes aguardam na estrutura encadeada.
 
+Cada caixa possui um operador associado, representado por colaboradores previamente carregados de um ficheiro. No início da simulação, são selecionados aleatoriamente 6 colaboradores, que são atribuídos às caixas iniciais. Estes colaboradores fazem parte de uma equipa de plantão. Caso uma caixa seja encerrada, o colaborador associado torna-se inativo e poderá ser reativado caso a caixa seja novamente aberta.
 
-validaçoes de entrada em clientes e produtos
-busca de cliente
+As caixas podem assumir três estados distintos: aberta, em encerramento ou fechada. Uma caixa aberta aceita clientes e realiza atendimento normalmente. Uma caixa em encerramento não aceita novos clientes, mas continua a processar os clientes já presentes na fila. Uma caixa fechada não realiza qualquer tipo de atendimento. Existe ainda uma flag de controlo manual do gerente, que impede alterações automáticas de estado nessas caixas, garantindo que ações feitas pelo menu (como abertura ou encerramento manual) não sejam sobrescritas pelo sistema automático.
+
+O sistema disponibiliza ainda funcionalidades de consulta, permitindo a pesquisa de clientes ativos por identificador único e a listagem paginada de clientes atualmente no sistema, garantindo uma visão operacional do estado da simulação em tempo real, bem como a visualização do conteúdo do carrinho de compras de um cliente específico.
+
+O fluxo de atendimento dentro das caixas é baseado no tempo de pagamento dos produtos do cliente. Quando o cliente chega ao início da fila, é calculado o tempo total necessário para pagamento de todos os seus produtos. Este tempo é somado ao tempo total estimado da fila da caixa, permitindo determinar a melhor caixa para novos clientes, baseada na menor carga total de espera.
+
+O sistema também implementa um mecanismo de equilíbrio dinâmico de filas. Se o número médio de clientes por caixa ultrapassar o valor MAX_FILA, novas caixas são abertas automaticamente. Caso o número médio de clientes por caixa seja inferior ao valor MIN_FILA, caixas são encerradas automaticamente após concluir os atendimentos pendentes. Além disso, existe a possibilidade de abertura e encerramento manual via menu, respeitando sempre a flag de controlo manual do gerente. Existe tambem a possibilidade no menu de retornar a caixa para o estado automatico, dessa forma voltando a gestão da caixa para sistema.
+
+Durante o atendimento, se o tempo de espera de um cliente na fila ultrapassar o valor MAX_ESPERA, o cliente recebe uma oferta automática, sendo-lhe atribuído o produto de menor valor da sua lista. Esta oferta só pode ocorrer uma única vez por cliente e é contabilizada nas estatísticas globais do sistema, tanto em número de produtos oferecidos como em valor total associado. Se o cliente for gerado novamente e reentroduzido no sistema ele aparece como novo cliente, podendo ganhar novamente a prenda se preciso.
+
+O sistema também permite mudança de fila entre caixas. Um cliente pode mudar de fila se a diferença de tempo estimado entre caixas for superior ao valor DIFERENCA_TEMPO_CAIXAS, desde que não esteja nas primeiras posições da fila e ainda não tenha mudado anteriormente. Esta operação melhora o balanceamento das filas e reduz o tempo médio de espera global.
+
+O ciclo de simulação segue sempre a mesma ordem lógica: atualização dos clientes em compras, movimentação para filas, atualização de caixas em atendimento, finalização e início de atendimentos, aplicação de ofertas, avaliação de mudanças de fila, verificação de abertura e encerramento automático de caixas, geração de novos clientes e atualização de estatísticas globais.
+
+As estatísticas do sistema incluem o número de clientes gerados, atendidos, produtos vendidos e oferecidos, valores totais, tempos médios de espera, número de mudanças de fila, aberturas e encerramentos automáticos, além de métricas por caixa. No final da simulação, é gerado um relatório completo com análise detalhada do desempenho do sistema, relatório que também pode ser consultado em tempo real durante a simulação.
+
+A memória utilizada pelo sistema é calculada separando memória efetivamente ocupada de memória desperdiçada. A memória desperdiçada corresponde a capacidade alocada mas não utilizada em estruturas dinâmicas, como arrays parcialmente preenchidos, buckets vazios e listas com capacidade ociosa, estas informações de memória também podem ser consultadas durante o funcionamento da simulação.
+
+No início da execução do sistema, são carregados os dados base dos ficheiros de clientes, produtos e colaboradores. Estes dados são utilizados para alimentar a simulação. A entrada de novos clientes pode ser feita automaticamente durante a simulação ou manualmente através do menu. Todas as ações realizadas no menu são registadas em um histórico de eventos, que é exportado para ficheiro CSV no encerramento da simulação.
+
+As bases de dados de clientes, produtos e colaboradores são implementadas com arrays dinâmicos em memória contínua, com redimensionamento por realloc. Esta escolha foi feita devido à elevada eficiência na velocidade de acesso e pesquisa, uma vez que permite acesso direto aos elementos por índice em tempo constante O(1), além de apresentar melhor desempenho em leitura sequencial devido à localidade de memória (cache-friendly). Esta abordagem reduz significativamente o custo adicional em memória comparado com listas ligadas ou árvores e simplifica a gestão da memória, enquanto o sistema mantém uma arquitetura híbrida que combina arrays dinâmicos, listas ligadas e hash tables para otimizar diferentes tipos de operações.
+
+O sistema também permite pausar e retomar a simulação a qualquer momento. Durante a pausa, o utilizador pode adicionar clientes, produtos ou alterar configurações. Ao encerrar a simulação, é gerado um ficheiro de estatísticas com informações detalhadas como: caixa que atendeu mais clientes, caixa com maior volume de vendas, clientes atendidos por caixa, operador com menor número de atendimentos e valores totais de produtos oferecidos.
+
+O sistema inclui um mecanismo de persistência de dados baseado em ficheiros, garantindo que todas as alterações realizadas em memória são refletidas automaticamente no armazenamento externo. Sempre que um cliente ou produto é adicionado dinamicamente durante a execução, os dados são imediatamente atualizados nos respetivos ficheiros, evitando perda de informação e assegurando consistência entre a memória do sistema e a sua representação persistente, mesmo após pausas ou encerramento da simulação.
+
+A simulação pode ser resumida como um sistema de fluxo contínuo onde clientes entram, compram produtos, são distribuídos por filas de caixas, são atendidos e saem do sistema, enquanto o sistema ajusta dinamicamente a capacidade de atendimento através da abertura e fecho de caixas e otimização das filas, garantindo sempre um equilíbrio entre carga e eficiência operacional.
+
+A função processa clientes que terminaram as compras removendo-os da lista de compras e encaminhando-os para a melhor caixa disponível, mantendo-os na lista caso não seja possível o envio imediato.
  
+O funcionamento do sistema simula um supermercado em regime contínuo, do tipo AM/PM, estando em operação 24 horas por dia, sem interrupções. Isso significa que a simulação não possui períodos de encerramento, mantendo sempre o fluxo de clientes, atendimento e atualização de filas ativo de forma permanente, apenas variando a intensidade da atividade ao longo do tempo simulado.
+
+pipeline do sistema
+Entrada → Compras → Fila → Atendimento → Saída
+
+Pontos fortes do sistema
+O sistema apresenta vários pontos fortes ao nível da arquitetura e funcionamento, destacando-se o mecanismo de balanceamento automático de caixas, que permite adaptar dinamicamente a capacidade de atendimento à carga do sistema, garantindo eficiência operacional. A simulação em tempo real, aliada ao controlo de velocidade, proporciona uma execução flexível e interativa. A utilização de uma arquitetura híbrida, combinando diferentes estruturas de dados (hash tables, listas ligadas e arrays dinâmicos), permite otimizar o desempenho para diferentes tipos de operações. Além disso, o sistema integra controlo manual e automático das caixas, oferecendo ao utilizador capacidade de intervenção sem comprometer a lógica autónoma do sistema.
+
+Possíveis melhorias
+Como evolução do sistema, poderão ser implementadas várias melhorias com impacto significativo na qualidade da simulação. A utilização de uma estrutura de prioridade (como um heap) para gerir os clientes em compras permitiria otimizar ainda mais a identificação do próximo cliente a terminar. A implementação de um mecanismo de persistência mais completo permitiria guardar e restaurar o estado total da simulação. O sistema de turnos de colaboradores tambem poderia ser implementado, onde a cada x horas os colaboradores seriam trocados, suas estatisticas salvas e novos colaboradores poderiam tomar lugar. a opção de horario de funcionamento fixo ou am/pm (24h) tambem poderia ser implementada, dessa forma poderia-se mudar o tipo de funcionamento de acordo com o supermercado especifico.
+
+___________________________________________________________________________________________________
+
+O sistema utiliza uma arquitetura híbrida baseada em múltiplas estruturas de dados, a escolha das estruturas de dados foi orientada pelos requisitos de desempenho e natureza dinâmica do sistema, privilegiando inserções e remoções eficientes, bem como acesso rápido aos elementos mais relevantes em cada contexto.
+
+Clientes ativos – Hash Table com encadeamento
+Dados base – Arrays dinâmicos com realocação
+Filas das caixas – Listas ligadas FIFO
+Clientes em compras – Lista ligada ordenada por tempo
+Histórico de clientes por caixa – Lista ligada
+Logs do sistema – Array dinâmico
+Cliente em atendimento – Ponteiro direto
+Estatísticas globais – Estrutura agregadora
+Sistema principal – Estrutura composta (agregação de todas as anteriores)
 
 
 
-as propriedades em config abaixo foram retiradas pois sao desnecessárias devido a arquitetura do problema
-o preço de cada produto esta no arquivo produtos e o tempo de atendimento tambem, bem como o tempo de procura
-de cada produto.
+Clientes ativos – Hash Table
+Os clientes ativos no sistema são armazenados numa tabela de dispersão (hash table) com encadeamento, permitindo acesso rápido através do identificador único (ID). A função de dispersão distribui os clientes pelos diferentes buckets, reduzindo o tempo de pesquisa, inserção e remoção para valores próximos de O(1). Esta estrutura garante eficiência na gestão dos clientes presentes no sistema em tempo real, evitando duplicações e facilitando operações de consulta direta.
 
-MAX_PRECO 40 
-TEMPO_ATENDIMENTO_PRODUTO  6 
+Dados base (clientes, produtos, colaboradores) – Arrays dinâmicos com realocação de memória
+Os dados base são armazenados em arrays dinâmicos em memória contínua, permitindo acesso direto por índice em tempo constante O(1). Sempre que a capacidade é atingida, o array é redimensionado através de realloc, garantindo flexibilidade no armazenamento. Esta abordagem é eficiente em termos de desempenho e utilização de cache, sendo especialmente adequada para estruturas com leitura frequente e alterações pontuais.
 
-No trabalho foram tomas as seguintes decisões de projeto importantes para a arquitetura do
-programa e para o funcionamento do mesmo:
+Filas das caixas – Listas ligadas (FIFO)
+As filas das caixas são implementadas como listas ligadas seguindo o princípio FIFO (First In, First Out), onde o primeiro cliente a entrar é o primeiro a ser atendido. Cada caixa possui a sua própria fila, permitindo gestão independente do fluxo de clientes. Esta estrutura facilita inserções e remoções eficientes sem necessidade de realocação de memória, sendo adequada para cenários dinâmicos com entrada e saída constante de elementos.
 
-- o fluxo de trabalho é continuo, é um supermercado 24/7, como os am/pm.
-- a unidade de medida minima é o minuto, o tempo de procura, o tempo de pagamento e o limite de tempo para ganho de oferta, todos são minutos.
-- o tempo máximo para ganho de prenda foi reduzido de 120 para 30, isso foi feito após muitos testes em diferentes condições de fluxo de entrada de clientes
-medias maiores ou menores de tempode de busca e pagamento de produtos e outras metricas importantes para o fuuncionamento fluido do sistema. esse acabou sendo um
-tempo muito bom do ponto de vista da simulação, onde podemos ver um bom fluxo de clientes mais ao mesmo tempo um fornecimento de gifts relativamente baixo.
-- de 1 em 1 ciclo (1 segundo real) é possivel aumentar a velocidade da simulão em até 500x, isso permitiu um melhor controle de diferentes cenários e ampliou a capacidade de analise
-de testes.
-- a cada cliente que entra no supermercado é gerado uma quantidade de produtos, de 1 até 20 (podendo ser alterado no arquivo config), esses produtos sao escolhidos aleatoriamente do 
-arquivo produtos, já alocado em memória, onde cada produto possui um tempo de procura e um tempo de pagamento, definindo o tempo total que o cliente passara dentro da loja e o tempo total que 
-o cliente precisa para pagar todos os produtos.
-- no inicio da simulação, são escolhidos aleatoriamente 6 colaboradores que serao responsaveis cada um por uma das 6 caixas, no fim da simulação é possivel ver as kpi's de cada um bem como 
-a lista de clientes atendidos.
-- foi implementado um dashboard de acompanhamento do supermercado onde se pode ver em tempo real o que se passa na loja, tanto em relação a clientes entrando, como comprando e pagamendo, 
-juntamente com alguns outros indicadores importantes, como tamanho de filas, quantidade de produtos ofertados, valor total ofertado e status das caixas.
-- outra decisão de projeto foi ordenar as listas de produtos de cada cliente, de maneira a que sempre que haja uma oferta de produto o produto mais barato seja ofertado.
-- é possivel listar os clientes que estao a comprar na loja no momento
-- é possivel fazer a busca de clientes por id, e essa busca no mostra algumas informações do cliente como nome e quantidade de produtos bem como a lista inteira de compras do cliente
+Fila de clientes comprando – Lista ligada ordenada
+Os clientes em fase de compras são armazenados numa lista ligada ordenada pelo instante previsto de fim de compras. Esta organização garante que o primeiro elemento da lista corresponde sempre ao próximo cliente a terminar o processo de aquisição de produtos. Como resultado, o sistema consegue identificar e processar rapidamente os clientes que devem ser encaminhados para as caixas, evitando percorrer toda a estrutura a cada ciclo e melhorando a eficiência global da simulação.
+
+Histórico de clientes por caixa – Lista ligada
+Cada caixa mantém um histórico dos clientes atendidos ao longo da simulação, armazenado numa lista ligada. Esta estrutura permite adicionar novos registos de forma eficiente à medida que os atendimentos são concluídos, sem necessidade de realocação de memória. O histórico é utilizado para análise de desempenho, geração de relatórios e cálculo de métricas específicas por caixa, como número total de clientes atendidos ou volume de vendas.
+
+Logs do sistema – Array dinâmico
+O sistema regista todas as ações relevantes (como operações do menu, eventos importantes ou alterações de estado) num array dinâmico de logs. Esta estrutura permite armazenar os eventos de forma sequencial, sendo redimensionada automaticamente quando necessário através de realocação de memória. Os logs são posteriormente utilizados para exportação para ficheiros CSV, permitindo auditoria, análise e rastreamento detalhado do comportamento do sistema.
+
+Cliente em atendimento – Ponteiro direto
+Cada caixa mantém um ponteiro direto para o cliente atualmente em atendimento. Esta abordagem permite acesso imediato ao cliente ativo sem necessidade de percorrer a fila, simplificando a lógica de processamento do atendimento. Além disso, esta separação entre cliente em atendimento e fila de espera torna o modelo mais claro e organizado, refletindo de forma mais realista o funcionamento de um sistema de caixas.
+
+Estatísticas globais – Estrutura agregadora
+As estatísticas do sistema são armazenadas numa estrutura agregadora que acumula informação ao longo de toda a simulação. Esta estrutura mantém dados como número total de clientes gerados e atendidos, produtos vendidos e oferecidos, valores totais e tempos médios de espera. A centralização destas métricas permite uma análise eficiente do desempenho do sistema, sendo utilizada tanto durante a execução como na geração do relatório final.
+
+Sistema principal – Estrutura composta
+O sistema principal é implementado como uma estrutura composta que agrega todas as restantes estruturas de dados, incluindo caixas, clientes ativos, listas de clientes em compras, estatísticas e configurações. Esta abordagem centraliza o estado global da simulação, facilitando a gestão e a comunicação entre os diferentes componentes. Ao concentrar toda a informação relevante numa única estrutura, o sistema torna-se mais organizado, modular e fácil de manter.
 
 
-salvar novo cliente no ficheiro clientes.txt e salvar novo produto no ficheiro produtos.txt, para nao perder
 
+
+
+void inicializarCaixa(CAIXA *caixa, int idCaixa);
+void inicializarCaixas(SISTEMA *sistema);
+CAIXA *obterCaixaPorId(SISTEMA *sistema, int idCaixa);
+CAIXA *obterPrimeiraCaixaAberta(SISTEMA *sistema);
+CAIXA *obterCaixaComMenorTempoEstimado(SISTEMA *sistema);
+int contarCaixasAbertas(SISTEMA *sistema);
+int contarCaixasEmEncerramento(SISTEMA *sistema);
+int caixaEstaAberta(CAIXA *caixa);
+int caixaEstaFechada(CAIXA *caixa);
+int caixaEstaEmEncerramento(CAIXA *caixa);
+int caixaAceitaNovosClientes(CAIXA *caixa);
+int caixaTemClientes(CAIXA *caixa);
+int abrirCaixa(SISTEMA *sistema, int idCaixa, int controloManual);
+int encerrarCaixa(SISTEMA *sistema, int idCaixa, int controloManual);
+int fecharCaixa(SISTEMA *sistema, int idCaixa, int controloManual);
+int colocarCaixaEmAuto(SISTEMA *sistema, int idCaixa);
+int encaminharClienteParaMelhorCaixa(SISTEMA *sistema, CLIENTE *cliente);
+int adicionarClienteNaCaixa(CAIXA *caixa, CLIENTE *cliente, int instanteAtual);
+int redistribuirClientesCaixaFechada(SISTEMA *sistema, int idCaixa);
+int iniciarAtendimentoSeNecessario(SISTEMA *sistema, CAIXA *caixa);
+int finalizarAtendimentoSeConcluido(SISTEMA *sistema, CAIXA *caixa);
+int calcularTempoRestanteClienteAtual(CAIXA *caixa);
+int calcularTempoEstimadoCaixa(CAIXA *caixa);
+int obterNumeroClientesCaixa(CAIXA *caixa);
+void atualizarTempoEstimadoCaixa(CAIXA *caixa);
+void adicionarClienteAoHistoricoCaixa(CAIXA *caixa, CLIENTE *cliente);
+void ativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa);
+void desativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa);
+
+CLIENTE *criarCliente(SISTEMA *sistema);
+void inicializarCliente(CLIENTE *cliente, SISTEMA *sistema);
+int gerarNovosClientes(SISTEMA *sistema);
+CLIENTE *gerarClienteAleatorio(SISTEMA *sistema);
+void gerarProdutosCliente(CLIENTE *cliente, SISTEMA *sistema);
+void ordenarProdutosClientePorPreco(CLIENTE *cliente);
+int calcularTempoTotalComprasCliente(CLIENTE *cliente);
+int calcularTempoTotalPagamentoCliente(CLIENTE *cliente);
+float calcularValorTotalComprasCliente(CLIENTE *cliente);
+void atualizarEstadoCliente(CLIENTE *cliente, ESTADO_CLIENTE novoEstado);
+int clienteEstaEmAtendimento(CLIENTE *cliente);
+void registarEntradaFilaCliente(CLIENTE *cliente, int instanteAtual);
+int calcularTempoEsperaCliente(CLIENTE *cliente, int instanteAtual);
+void iniciarAtendimentoCliente(CLIENTE *cliente, int instanteAtual);
+void atualizarTempoAtendimentoCliente(CLIENTE *cliente);
+int clienteTerminouAtendimento(CLIENTE *cliente);
+void finalizarAtendimentoCliente(CLIENTE *cliente, int instanteAtual);
+int clienteRecebeuOferta(CLIENTE *cliente);
+int clienteTemDireitoAOferta(SISTEMA *sistema, CLIENTE *cliente, int instanteAtual);
+void aplicarOfertaCliente(CLIENTE *cliente);
+int clienteJaMudouDeFila(CLIENTE *cliente);
+void marcarClienteMudouDeFila(CLIENTE *cliente);
+void libertarCliente(CLIENTE *cliente);
+void limparCamposCliente(CLIENTE *cliente);
+int obterQuantidadeProdutosCliente(SISTEMA *sistema);
+int obterQuantidadeNovosClientesNoCiclo(SISTEMA *sistema);
+void calcularCamposDerivadosCliente(CLIENTE *cliente);
+int obterIndiceProdutoMaisBarato(CLIENTE *cliente);
+int gerarProximoIdClienteBase(BASE_CLIENTES *base);
+int contarClientesNasCaixas(SISTEMA *sistema);
+int contarClientesSistema(SISTEMA *sistema);
+
+COLABORADOR *obterColaboradorPorId(SISTEMA *sistema, int id);
+COLABORADOR *obterColaboradorPorCaixa(SISTEMA *sistema, int idCaixa);
+void associarColaboradoresAsCaixas(SISTEMA *sistema);
+void ativarColaborador(COLABORADOR *colaborador, int idCaixa);
+void desativarColaborador(COLABORADOR *colaborador);
+void incrementarClientesAtendidosColaborador(COLABORADOR *colaborador);
+
+int carregarConfiguracao(CONFIGURACAO *config, char *nomeFicheiro);
+int validarConfiguracao(CONFIGURACAO *config);
+void aplicarValoresDefault(CONFIGURACAO *config);
+int lerParConfiguracao(FILE *ficheiro, char *chave, char *valor);
+void aplicarValorConfiguracao(CONFIGURACAO *config, char *chave, char *valor);
+
+void inicializarEstatisticas(ESTATISTICAS *estatisticas);
+void registarClienteGerado(ESTATISTICAS *estatisticas);
+void registarClienteAtendido(ESTATISTICAS *estatisticas);
+void registarProdutoVendido(ESTATISTICAS *estatisticas, int quantidade, float valor);
+void registarProdutoOferecido(ESTATISTICAS *estatisticas, float valor);
+void registarMudancaFila(ESTATISTICAS *estatisticas);
+void registarAberturaAutomatica(ESTATISTICAS *estatisticas);
+void registarEncerramentoAutomatico(ESTATISTICAS *estatisticas);
+void atualizarTempoEspera(ESTATISTICAS *estatisticas, int tempoEspera);
+void calcularTempoMedioEspera(ESTATISTICAS *estatisticas);
+void atualizarEstatisticasCaixas(SISTEMA *sistema);
+void determinarOperadorMenosAtendimentos(SISTEMA *sistema);
+void determinarOperadorMaisAtendimentos(SISTEMA *sistema);
+void atualizarMelhorCaixaClientes(SISTEMA *sistema);
+void atualizarMelhorCaixaProdutos(SISTEMA *sistema);
+
+int carregarBaseClientes(BASE_CLIENTES *base, char *nomeFicheiro);
+int carregarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro);
+int carregarBaseColaboradores(BASE_COLABORADORES *base, char *nomeFicheiro);
+int guardarBaseClientes(BASE_CLIENTES *base, char *nomeFicheiro);
+int guardarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro);
+int escreverHistoricoCSV(LISTA_LOGS *logs, char *nomeFicheiro);
+int escreverRelatorioEstatisticas(SISTEMA *sistema, char *nomeFicheiro);
+int escreverRelatorioCaixa(CAIXA *caixa, char *nomeFicheiro);
+void escreverRelatoriosTodasCaixas(SISTEMA *sistema);
+int garantirCapacidadeClientes(BASE_CLIENTES *base);
+int garantirCapacidadeProdutos(BASE_PRODUTOS *base);
+int garantirCapacidadeColaboradores(BASE_COLABORADORES *base);
+void limparPastaRelatorios(void);
+
+void inicializarFila(FILA *fila);
+int filaEstaVazia(FILA *fila);
+int obterTamanhoFila(FILA *fila);
+int enfileirarCliente(FILA *fila, CLIENTE *cliente);
+CLIENTE *desenfileirarCliente(FILA *fila);
+int removerClienteDaFilaPorId(FILA *fila, int idCliente);
+void libertarFila(FILA *fila);
+ELEMENTO *criarElementoFila(CLIENTE *cliente);
+
+void inicializarHash(HASHTABLE *tabela, int nBuckets);
+int funcaoHash(int chave, int nBuckets);
+BUCKET *obterBucket(HASHTABLE *tabela, int indice);
+int inserirClienteHash(HASHTABLE *tabela, CLIENTE *cliente);
+CLIENTE *procurarClienteHash(HASHTABLE *tabela, int chave);
+int removerClienteHash(HASHTABLE *tabela, int chave);
+int clienteExisteHash(HASHTABLE *tabela, int chave);
+void libertarHash(HASHTABLE *tabela);
+BUCKET *criarBucket(int indice);
+HASHNODE *criarHashNode(CLIENTE *cliente);
+BUCKET *procurarBucket(BUCKET *inicio, int indice);
+void libertarListaClientesBucket(HASHNODE *no);
+
+void inicializarListaLogs(LISTA_LOGS *logs);
+void adicionarLog(LISTA_LOGS *logs, int instante, char *acao, char *descricao);
+void limparListaLogs(LISTA_LOGS *logs);
+void libertarListaLogs(LISTA_LOGS *logs);
+NO_LOG_ACAO *criarNoLog(int instante, char *acao, char *descricao);
+
+void inicializarListaClientesComprando(LISTA_CLIENTES_COMPRANDO *lista);
+int listaComprasEstaVazia(LISTA_CLIENTES_COMPRANDO *lista);
+int inserirClienteOrdenadoListaCompras(LISTA_CLIENTES_COMPRANDO *lista, CLIENTE *cliente);
+CLIENTE *obterPrimeiroClienteListaCompras(LISTA_CLIENTES_COMPRANDO *lista);
+CLIENTE *removerPrimeiroClienteListaCompras(LISTA_CLIENTES_COMPRANDO *lista);
+void atualizarClientesEmCompras(LISTA_CLIENTES_COMPRANDO *lista, int instanteAtual);
+int clienteTerminouComprasLista(CLIENTE *cliente, int instanteAtual);
+void libertarListaClientesComprando(LISTA_CLIENTES_COMPRANDO *lista);
+NO_CLIENTE_COMPRANDO *criarNoClienteComprando(CLIENTE *cliente);
+
+void inicializarSistemaBase(SISTEMA *sistema);
+int carregarDadosIniciais(SISTEMA *sistema);
+void executarLoopPrincipal(SISTEMA *sistema);
+void finalizarSistema(SISTEMA *sistema);
+void libertarEstruturasDinamicas(SISTEMA *sistema);
+void libertarClientesAtivosHash(SISTEMA *sistema);
+void libertarClientesHistoricoCaixas(SISTEMA *sistema);
+void libertarBases(SISTEMA *sistema);
+void gerarSaidasFinais(SISTEMA *sistema);
+
+size_t calcularMemoriaCliente(CLIENTE *cliente);
+size_t calcularMemoriaFila(FILA *fila);
+size_t calcularMemoriaHash(HASHTABLE *tabela);
+size_t calcularMemoriaListaCompras(LISTA_CLIENTES_COMPRANDO *lista);
+size_t calcularMemoriaLogs(LISTA_LOGS *logs);
+size_t calcularMemoriaSistema(SISTEMA *sistema);
+size_t calcularMemoriaDesperdicadaSistema(SISTEMA *sistema);
+void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro);
+size_t calcularMemoriaHistoricoClientesCaixa(HISTORICO_CLIENTES_CAIXA *historico);
+size_t calcularMemoriaBases(SISTEMA *sistema);
+size_t calcularMemoriaDesperdicadaBases(SISTEMA *sistema);
+
+void mostrarMenuPrincipal();
+int lerOpcaoMenu(int min, int max);
+void executarOpcaoMenu(SISTEMA *sistema, int opcao);
+void mostrarMenuGestao();
+void adicionarClienteBaseMenu(SISTEMA *sistema);
+void adicionarProdutoBaseMenu(SISTEMA *sistema);
+void abrirCaixaManual(SISTEMA *sistema);
+void fecharCaixaManual(SISTEMA *sistema);
+void mostrarCabecalho(char *titulo);
+void mostrarEstadoResumidoSistema(SISTEMA *sistema);
+void executarMenuGestao(SISTEMA *sistema);
+void alterarVelocidadeSimulacao(SISTEMA *sistema);
+char *obterTextoVelocidade(int velocidade);
+void pesquisarClienteAtivoMenu(SISTEMA *sistema);
+void listarTodosClientesMenu(SISTEMA *sistema);
+void mostrarEstatisticasSimulacaoMenu(SISTEMA *sistema);
+void mostrarRelatorioMemoriaMenu(SISTEMA *sistema);
+int colocarCaixaEmAutoUI(SISTEMA *sistema);
+
+PRODUTO *gerarProdutoAleatorio(BASE_PRODUTOS *base);
+void ordenarProdutosPorPreco(PRODUTO *produtos, int quantidade);
+int calcularTempoTotalProdutos(PRODUTO *produtos, int quantidade);
+float calcularValorTotalProdutos(PRODUTO *produtos, int quantidade);
+void trocarProdutos(PRODUTO *a, PRODUTO *b);
+int gerarProximoIdProdutoBase(BASE_PRODUTOS *base);
+
+void inicializarSimulacao(SISTEMA *sistema);
+void executarSimulacao(SISTEMA *sistema);
+void cicloSimulacao(SISTEMA *sistema);
+void atualizarClientesEmComprasSimulacao(SISTEMA *sistema);
+void moverClientesParaFilas(SISTEMA *sistema);
+void atualizarCaixasSimulacao(SISTEMA *sistema);
+void finalizarAtendimentosSimulacao(SISTEMA *sistema);
+void iniciarNovosAtendimentosSimulacao(SISTEMA *sistema);
+void aplicarOfertasSimulacao(SISTEMA *sistema);
+void avaliarMudancasFilaSimulacao(SISTEMA *sistema);
+void verificarAberturaCaixasSimulacao(SISTEMA *sistema);
+void verificarEncerramentoCaixasSimulacao(SISTEMA *sistema);
+void gerarNovosClientesSimulacao(SISTEMA *sistema);
+void atualizarEstatisticasSimulacao(SISTEMA *sistema);
+void pausarSimulacao(SISTEMA *sistema);
+void retomarSimulacao(SISTEMA *sistema);
+void encerrarSimulacao(SISTEMA *sistema);
+void processarClientesTerminadosEmCompras(SISTEMA *sistema);
+CAIXA *obterCaixaDestinoMudanca(SISTEMA *sistema, CAIXA *caixaAtual);
+CLIENTE *obterClienteNaPosicaoFila(FILA *fila, int posicao);
+int tentarMoverClienteDeFila(SISTEMA *sistema, CAIXA *caixaOrigem, CLIENTE *cliente);
+CAIXA *obterCaixaParaAberturaAutomatica(SISTEMA *sistema);
+CAIXA *obterCaixaParaEncerramentoAutomatico(SISTEMA *sistema);
+void mostrarPainelSimulacao(SISTEMA *sistema);
+void processarTeclaSimulacao(SISTEMA *sistema);
+char obterCharLoading(int passo);
+int obterDelayPorVelocidade(int velocidade);
+char *obterTextoControloCaixa(CAIXA *caixa);
+void reinicializarEstadoSimulacao(SISTEMA *sistema);
+
+void limparBufferEntrada(void);
+void lerString(char *mensagem, char *destino, int tamanho);
+void lerFloat(char *mensagem, float *destino, float min, float max);
+void lerInteiro(char *mensagem, int *destino, int min, int max);
+void limparTela();
+void pausarTela();
+void gerarTimestampFormatado(char *buffer, int tamanho);
+void copiarStringSeguro(char *destino, char *origem, int tamanho);
+void gerarNomeFicheiroComTimestamp(char *destino, int tamanho, char *prefixo, char *extensao);
+void configurarAmbienteUTF8();
+int Aleatorio(int min, int max);

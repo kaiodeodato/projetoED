@@ -5,6 +5,7 @@
 #include "define.h"
 #include "uteis.h"
 
+// Seleciona aleatoriamente um produto da base de produtos e devolve o seu ponteiro
 PRODUTO *gerarProdutoAleatorio(BASE_PRODUTOS *base) {
     int indice;
 
@@ -15,7 +16,7 @@ PRODUTO *gerarProdutoAleatorio(BASE_PRODUTOS *base) {
     indice = Aleatorio(0, base->tamanho - 1);
     return &base->dados[indice];
 }
-
+// Ordena os produtos por preço em ordem crescente usando algoritmo de bubble sort
 void ordenarProdutosPorPreco(PRODUTO *produtos, int quantidade) {
     int i;
     int j;
@@ -32,8 +33,8 @@ void ordenarProdutosPorPreco(PRODUTO *produtos, int quantidade) {
         }
     }
 }
-
-int calcularTempoTotalProdutos(const PRODUTO *produtos, int quantidade) {
+// Calcula o tempo total de procura de um conjunto de produtos
+int calcularTempoTotalProdutos(PRODUTO *produtos, int quantidade) {
     int i;
     int tempoTotal = 0;
 
@@ -47,8 +48,8 @@ int calcularTempoTotalProdutos(const PRODUTO *produtos, int quantidade) {
 
     return tempoTotal;
 }
-
-float calcularValorTotalProdutos(const PRODUTO *produtos, int quantidade) {
+// Calcula o valor total de um conjunto de produtos somando os preços
+float calcularValorTotalProdutos(PRODUTO *produtos, int quantidade) {
     int i;
     float valorTotal = 0.0f;
 
@@ -62,7 +63,7 @@ float calcularValorTotalProdutos(const PRODUTO *produtos, int quantidade) {
 
     return valorTotal;
 }
-
+// Troca dois produtos de posição na memória (swap)
 void trocarProdutos(PRODUTO *a, PRODUTO *b) {
     PRODUTO temp;
 
@@ -74,8 +75,8 @@ void trocarProdutos(PRODUTO *a, PRODUTO *b) {
     *a = *b;
     *b = temp;
 }
-
-char *obterTextoControloCaixa(const CAIXA *caixa) {
+// Retorna uma string indicando se a caixa está em controlo manual ou automático
+char *obterTextoControloCaixa(CAIXA *caixa) {
     if (caixa == NULL) {
         return "N/A";
     }
@@ -86,7 +87,7 @@ char *obterTextoControloCaixa(const CAIXA *caixa) {
 
     return "AUTO";
 }
-
+// Gera o próximo ID sequencial para produtos da base, com base no último elemento existente
 int gerarProximoIdProdutoBase(BASE_PRODUTOS *base) {
     if (base == NULL || base->tamanho <= 0) {
         return 100001;

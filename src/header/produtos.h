@@ -7,8 +7,8 @@
 
 PRODUTO *gerarProdutoAleatorio(BASE_PRODUTOS *base);
 void ordenarProdutosPorPreco(PRODUTO *produtos, int quantidade);
-int calcularTempoTotalProdutos(const PRODUTO *produtos, int quantidade);
-float calcularValorTotalProdutos(const PRODUTO *produtos, int quantidade);
+int calcularTempoTotalProdutos(PRODUTO *produtos, int quantidade);
+float calcularValorTotalProdutos(PRODUTO *produtos, int quantidade);
 void trocarProdutos(PRODUTO *a, PRODUTO *b);
 int gerarProximoIdProdutoBase(BASE_PRODUTOS *base);
 

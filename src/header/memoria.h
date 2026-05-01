@@ -5,16 +5,16 @@
 #include <stdlib.h>
 #include "structs.h"
 
-size_t calcularMemoriaCliente(const CLIENTE *cliente);
-size_t calcularMemoriaFila(const FILA *fila);
-size_t calcularMemoriaHash(const HASHTABLE *tabela);
-size_t calcularMemoriaListaCompras(const LISTA_CLIENTES_COMPRANDO *lista);
-size_t calcularMemoriaLogs(const LISTA_LOGS *logs);
-size_t calcularMemoriaSistema(const SISTEMA *sistema);
-size_t calcularMemoriaDesperdicadaSistema(const SISTEMA *sistema);
-void gerarRelatorioMemoria(const SISTEMA *sistema, const char *nomeFicheiro);
-size_t calcularMemoriaHistoricoClientesCaixa(const HISTORICO_CLIENTES_CAIXA *historico);
-size_t calcularMemoriaBases(const SISTEMA *sistema);
-size_t calcularMemoriaDesperdicadaBases(const SISTEMA *sistema);
+size_t calcularMemoriaCliente(CLIENTE *cliente);
+size_t calcularMemoriaFila(FILA *fila);
+size_t calcularMemoriaHash(HASHTABLE *tabela);
+size_t calcularMemoriaListaCompras(LISTA_CLIENTES_COMPRANDO *lista);
+size_t calcularMemoriaLogs(LISTA_LOGS *logs);
+size_t calcularMemoriaSistema(SISTEMA *sistema);
+size_t calcularMemoriaDesperdicadaSistema(SISTEMA *sistema);
+void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro);
+size_t calcularMemoriaHistoricoClientesCaixa(HISTORICO_CLIENTES_CAIXA *historico);
+size_t calcularMemoriaBases(SISTEMA *sistema);
+size_t calcularMemoriaDesperdicadaBases(SISTEMA *sistema);
 
 #endif

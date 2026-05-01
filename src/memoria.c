@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include "memoria.h"
 
-size_t calcularMemoriaCliente(const CLIENTE *cliente) {
+// Calcula a memória ocupada por um cliente, incluindo a estrutura e os seus produtos
+size_t calcularMemoriaCliente(CLIENTE *cliente) {
     size_t memoria = 0;
 
     if (cliente == NULL) {
@@ -17,8 +18,8 @@ size_t calcularMemoriaCliente(const CLIENTE *cliente) {
 
     return memoria;
 }
-
-size_t calcularMemoriaFila(const FILA *fila) {
+// Calcula a memória ocupada pela fila, incluindo a estrutura e todos os seus elementos
+size_t calcularMemoriaFila(FILA *fila) {
     size_t memoria = 0;
     ELEMENTO *atual;
 
@@ -36,8 +37,8 @@ size_t calcularMemoriaFila(const FILA *fila) {
 
     return memoria;
 }
-
-size_t calcularMemoriaHash(const HASHTABLE *tabela) {
+// Calcula a memória ocupada pela tabela hash, incluindo buckets e nós de clientes
+size_t calcularMemoriaHash(HASHTABLE *tabela) {
     size_t memoria = 0;
     BUCKET *bucketAtual;
 
@@ -63,8 +64,8 @@ size_t calcularMemoriaHash(const HASHTABLE *tabela) {
 
     return memoria;
 }
-
-size_t calcularMemoriaListaCompras(const LISTA_CLIENTES_COMPRANDO *lista) {
+// Calcula a memória ocupada pela lista de clientes em compras, incluindo a estrutura e todos os nós
+size_t calcularMemoriaListaCompras(LISTA_CLIENTES_COMPRANDO *lista) {
     size_t memoria = 0;
     NO_CLIENTE_COMPRANDO *atual;
 
@@ -82,8 +83,8 @@ size_t calcularMemoriaListaCompras(const LISTA_CLIENTES_COMPRANDO *lista) {
 
     return memoria;
 }
-
-size_t calcularMemoriaLogs(const LISTA_LOGS *logs) {
+// Calcula a memória ocupada pela lista de logs, incluindo a estrutura e todos os nós
+size_t calcularMemoriaLogs(LISTA_LOGS *logs) {
     size_t memoria = 0;
     NO_LOG_ACAO *atual;
 
@@ -101,8 +102,8 @@ size_t calcularMemoriaLogs(const LISTA_LOGS *logs) {
 
     return memoria;
 }
-
-size_t calcularMemoriaSistema(const SISTEMA *sistema) {
+// Calcula a memória total ocupada pelo sistema, incluindo estruturas principais, caixas, listas, hash e clientes
+size_t calcularMemoriaSistema(SISTEMA *sistema) {
     size_t memoria = 0;
     int i;
     BUCKET *bucketAtual;
@@ -144,16 +145,16 @@ size_t calcularMemoriaSistema(const SISTEMA *sistema) {
 
     return memoria;
 }
-
-size_t calcularMemoriaDesperdicadaSistema(const SISTEMA *sistema) {
+// Calcula a memória desperdiçada no sistema, delegando o cálculo às bases de dados
+size_t calcularMemoriaDesperdicadaSistema(SISTEMA *sistema) {
     if (sistema == NULL) {
         return 0;
     }
 
     return calcularMemoriaDesperdicadaBases(sistema);
 }
-
-void gerarRelatorioMemoria(const SISTEMA *sistema, const char *nomeFicheiro) {
+// Gera um relatório estimado de memória do sistema, detalhando consumo por estruturas e memória desperdiçada
+void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro) {
     FILE *ficheiro;
     size_t memoriaClientesAtivos = 0;
     size_t memoriaFilas = 0;
@@ -228,8 +229,8 @@ void gerarRelatorioMemoria(const SISTEMA *sistema, const char *nomeFicheiro) {
 
     fclose(ficheiro);
 }
-
-size_t calcularMemoriaHistoricoClientesCaixa(const HISTORICO_CLIENTES_CAIXA *historico) {
+// Calcula a memória ocupada pelo histórico de clientes de uma caixa, incluindo a estrutura e todos os nós
+size_t calcularMemoriaHistoricoClientesCaixa(HISTORICO_CLIENTES_CAIXA *historico) {
     size_t memoria = 0;
     NO_HISTORICO_CLIENTE *atual;
 
@@ -247,8 +248,8 @@ size_t calcularMemoriaHistoricoClientesCaixa(const HISTORICO_CLIENTES_CAIXA *his
 
     return memoria;
 }
-
-size_t calcularMemoriaBases(const SISTEMA *sistema) {
+// Calcula a memória ocupada pelas bases de clientes, produtos e colaboradores, incluindo capacidade alocada
+size_t calcularMemoriaBases(SISTEMA *sistema) {
     size_t memoria = 0;
 
     if (sistema == NULL) {
@@ -273,8 +274,8 @@ size_t calcularMemoriaBases(const SISTEMA *sistema) {
 
     return memoria;
 }
-
-size_t calcularMemoriaDesperdicadaBases(const SISTEMA *sistema) {
+// Calcula a memória desperdiçada nas bases, considerando a capacidade alocada não utilizada
+size_t calcularMemoriaDesperdicadaBases(SISTEMA *sistema) {
     size_t memoria = 0;
     int elementosNaoUsados;
 
