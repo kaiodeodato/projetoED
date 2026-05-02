@@ -32,7 +32,6 @@ typedef enum EstadoCaixa {
 typedef struct Configuracao {
     int MAX_ESPERA;
     int N_CAIXAS;
-    int TEMPO_ATENDIMENTO_PRODUTO;
     float MAX_PRECO;
     int MAX_FILA;
     int MIN_FILA;

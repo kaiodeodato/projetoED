@@ -9663,3 +9663,4 @@ id     nome                       preco   tempoDeProcura  tempoDePagamento
 51095 kitkat                     12.00   2               1              
 51096 cheetos                    2.00    5               1              
 51097 gym                        4.00    5               1              
+51098 açai                      5.00    15              2              

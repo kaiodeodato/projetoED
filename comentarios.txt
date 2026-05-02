@@ -76,6 +76,9 @@ A função processa clientes que terminaram as compras removendo-os da lista de 
  
 O funcionamento do sistema simula um supermercado em regime contínuo, do tipo AM/PM, estando em operação 24 horas por dia, sem interrupções. Isso significa que a simulação não possui períodos de encerramento, mantendo sempre o fluxo de clientes, atendimento e atualização de filas ativo de forma permanente, apenas variando a intensidade da atividade ao longo do tempo simulado.
 
+Foi implementado um bloqueio de saída durante a execução da simulação para garantir a integridade dos dados e evitar estados inconsistentes.
+A simulação só pode ser fechado depois de encerrada.
+
 pipeline do sistema
 Entrada → Compras → Fila → Atendimento → Saída
 

@@ -28,6 +28,7 @@ void inicializarSimulacao(SISTEMA *sistema) {
     adicionarLog(&sistema->logs,sistema->tempoAtual,"SIMULACAO","Simulacao preparada");
 }
 // Executa o ciclo principal da simulação, processando eventos, atualizando a interface e controlando pausa e velocidade
+// estrutura principal de execução da simulação.
 void executarSimulacao(SISTEMA *sistema) {
     int passoLoading = 0;
     int estavaPausada;
@@ -76,6 +77,7 @@ void executarSimulacao(SISTEMA *sistema) {
     }
 }
 // Executa um ciclo da simulação, atualizando clientes, caixas, eventos e avançando o tempo do sistema
+// coração da simulação
 void cicloSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
@@ -583,10 +585,12 @@ void processarTeclaSimulacao(SISTEMA *sistema) {
         return;
     }
 
+    // _kbhit(): retorna 1 se uma tecla foi pressionada, 0 caso contrário
+    // evita bloquear a execução esperando input
     if (!_kbhit()) {
         return;
     }
-
+    // lê a tecla pressionada sem necessidade de ENTER
     tecla = (char)_getch();
 
     if (tecla == 'p' || tecla == 'P') {

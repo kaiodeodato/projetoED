@@ -1,0 +1,19 @@
+Tempo de simulacao: 8328
+Clientes gerados: 2155
+Clientes atendidos: 2038
+Produtos vendidos: 21377
+Valor total vendido: 87669.62
+Produtos oferecidos: 26
+Valor total oferecido: 31.93
+Receita liquida: 87637.69
+Mudancas de fila: 541
+Aberturas automaticas: 321
+Encerramentos automaticos: 318
+Soma tempos espera: 36745.00
+Tempo medio espera: 18.03
+Caixa com mais clientes: 0
+Caixa com mais produtos: 0
+Operador com menos atendimentos: 3562 - Catarina Nicole Silva Silva (240 atendimentos)
+Operador com mais atendimentos: 4322 - Joana Manies Ferreira Bastos (412 atendimentos)
+Cliente que mais gastou: 047591 - Valdemar Matos Quadros (211.42)
+Cliente que menos gastou: 447751 - Basilio Santos Ramalho (0.52)
