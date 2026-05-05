@@ -366,3 +366,18 @@ void copiarStringSeguro(char *destino, char *origem, int tamanho);
 void gerarNomeFicheiroComTimestamp(char *destino, int tamanho, char *prefixo, char *extensao);
 void configurarAmbienteUTF8();
 int Aleatorio(int min, int max);
+
+
+A simulação funciona com um ciclo principal (while) que executa continuamente enquanto o estado for ativo. Cada iteração desse ciclo representa um minuto virtual e chama a função cicloSimulacao, onde todos os eventos do sistema são processados. O tempo da simulação é independente do tempo real, sendo controlado por incrementos no tempoAtual. A velocidade da simulação é ajustada através de um Sleep, que define o intervalo real entre ciclos. Já a atualização da interface é feita de forma periódica, usando um contador de ciclos, apenas para otimizar a performance.
+A simulação é independente do tempo real do computador.
+
+
+separaçao em mais 3 menus
+organizar estatisticas
+por label no status
+adicionar explicitamente o uso de _kbhit e _getchar
+foi usado em todos as estruturas o formato CLIENTE e CLIENTES*, nao o PTCLIENTE previamente definido
+
+
+listar cliente so a comprar 
+listar que esta a lerParConfiguracao

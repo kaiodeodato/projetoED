@@ -5,14 +5,14 @@ Nota: os valores apresentados correspondem a uma estimativa baseada nas estrutur
 de dados dinamicas geridas pelo programa, nao incluindo overhead interno do malloc,
 fragmentacao de memoria ou consumo adicional do runtime.
 
-Memoria total estimada das estruturas do sistema: 2494144 bytes
+Memoria total estimada das estruturas do sistema: 2337256 bytes
 Memoria desperdicada estimada nas bases dinamicas: 922056 bytes
 
 Detalhe por estrutura:
   Bases carregadas: 2303536 bytes
-  Caixas (vetor + historicos): 33376 bytes
-  Filas: 144 bytes
-  Hash de clientes: 5248 bytes
-  Lista de compras: 1672 bytes
-  Logs: 11064 bytes
-  Clientes ativos e produtos associados: 138920 bytes
+  Caixas (vetor + historicos): 768 bytes
+  Filas: 0 bytes
+  Hash de clientes: 2872 bytes
+  Lista de compras: 312 bytes
+  Logs: 10328 bytes
+  Clientes ativos e produtos associados: 19256 bytes

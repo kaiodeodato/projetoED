@@ -1,0 +1,19 @@
+Tempo de simulacao: 101
+Clientes gerados: 18
+Clientes atendidos: 0
+Produtos vendidos: 0
+Valor total vendido: 0.00
+Produtos oferecidos: 0
+Valor total oferecido: 0.00
+Receita liquida: 0.00
+Mudancas de fila: 0
+Aberturas automaticas: 0
+Encerramentos automaticos: 0
+Soma tempos espera: 0.00
+Tempo medio espera: 0.00
+Caixa com mais clientes: 0
+Caixa com mais produtos: 0
+Operador com menos atendimentos: 7046 - Carolina Gomes Moutinho (194 atendimentos)
+Operador com mais atendimentos: 4322 - Joana Manies Ferreira Bastos (499 atendimentos)
+Cliente que mais gastou: nenhum cliente atendido
+Cliente que menos gastou: nenhum cliente atendido
