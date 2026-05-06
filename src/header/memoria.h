@@ -16,5 +16,6 @@ void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro);
 size_t calcularMemoriaHistoricoClientesCaixa(HISTORICO_CLIENTES_CAIXA *historico);
 size_t calcularMemoriaBases(SISTEMA *sistema);
 size_t calcularMemoriaDesperdicadaBases(SISTEMA *sistema);
+size_t calcularMemoriaDesperdicadaNomes(SISTEMA *sistema);
 
 #endif

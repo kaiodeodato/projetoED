@@ -11,5 +11,8 @@ int calcularTempoTotalProdutos(PRODUTO *produtos, int quantidade);
 float calcularValorTotalProdutos(PRODUTO *produtos, int quantidade);
 void trocarProdutos(PRODUTO *a, PRODUTO *b);
 int gerarProximoIdProdutoBase(BASE_PRODUTOS *base);
+void procurarProdutoPorId(BASE_PRODUTOS *base);
+void mostrarPaginaProdutos(BASE_PRODUTOS *base, int pagina);
+void listarProdutosPaginado(BASE_PRODUTOS *base);
 
 #endif

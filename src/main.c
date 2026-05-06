@@ -71,7 +71,6 @@ void inicializarSistemaBase(SISTEMA *sistema) {
     sistema->velocidadeSimulacao = VELOCIDADE_SIMULACAO_DEFAULT;
     sistema->ciclosDesdeUltimoRefresh = 0;
 
-    sistema->clientesHash.inicio = NULL;
     sistema->clientesHash.nBuckets = 0;
     sistema->clientesHash.nElementos = 0;
 
@@ -105,7 +104,7 @@ int carregarDadosIniciais(SISTEMA *sistema) {
         return 0;
     }
 
-    inicializarHash(&sistema->clientesHash, HASH_N_BUCKETS_INICIAL);
+    inicializarHash(&sistema->clientesHash, HASH_N_BUCKETS);
     if (sistema->clientesHash.nBuckets <= 0) {
         printf("Erro ao inicializar a hash de clientes.\n");
         return 0;
@@ -136,8 +135,7 @@ void executarLoopPrincipal(SISTEMA *sistema) {
         mostrarMenuPrincipal();
         opcao = lerOpcaoMenu(0, 6);
 
-        if (opcao == 0 &&
-            (sistema->estadoSimulacao == SIMULACAO_ATIVA || sistema->estadoSimulacao == SIMULACAO_PAUSADA)) {
+        if (opcao == 0 && (sistema->estadoSimulacao == SIMULACAO_ATIVA || sistema->estadoSimulacao == SIMULACAO_PAUSADA)) {
             printf("Encerre a simulacao antes de sair.\n");
             pausarTela();
             opcao = -1;
@@ -228,29 +226,23 @@ void libertarEstruturasDinamicas(SISTEMA *sistema) {
 }
 // Liberta os clientes ativos na hash que ainda não foram atendidos, evitando libertar os já processados
 void libertarClientesAtivosHash(SISTEMA *sistema) {
-    BUCKET *bucketAtual;
+    int i;
 
     if (sistema == NULL) {
         return;
     }
 
-    bucketAtual = sistema->clientesHash.inicio;
-
-    while (bucketAtual != NULL) {
-        HASHNODE *noAtual = bucketAtual->clientes;
+    for (i = 0; i < sistema->clientesHash.nBuckets; i++) {
+        HASHNODE *noAtual = sistema->clientesHash.buckets[i].clientes;
 
         while (noAtual != NULL) {
-            if (noAtual->cliente != NULL &&
-                noAtual->cliente->estado != CLIENTE_ATENDIDO) {
-                
+            if (noAtual->cliente != NULL) {
                 libertarCliente(noAtual->cliente);
                 noAtual->cliente = NULL;
             }
 
             noAtual = noAtual->prox;
         }
-
-        bucketAtual = bucketAtual->prox;
     }
 }
 // Liberta todos os clientes armazenados no histórico das caixas e limpa a estrutura associada

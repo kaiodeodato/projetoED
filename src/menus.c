@@ -89,99 +89,6 @@ void executarOpcaoMenu(SISTEMA *sistema, int opcao) {
             break;
     }
 }
-// Mostra o menu de gestão administrativa com opções de configuração e controlo do sistema
-void mostrarMenuGestao() {
-    limparTela();
-    mostrarCabecalho("MENU DE GESTAO");
-    printf("1. Adicionar cliente base\n");
-    printf("2. Adicionar produto base\n");
-    printf("3. Abrir caixa manualmente\n");
-    printf("4. Fechar caixa manualmente\n");
-    printf("5. Passar caixa a AUTO\n");
-    printf("6. Pesquisar cliente ativo\n");
-    printf("7. Listar todos os clientes\n");
-    printf("8. Mostrar estatisticas da simulacao\n");
-    printf("9. Mostrar relatorio de memoria\n");
-    printf("0. Voltar\n");
-    printf("%s", LINHA_SEPARADORA);
-}
-// Executa o menu de gestão, permitindo operações administrativas enquanto regista ações no log do sistema
-void executarMenuGestao(SISTEMA *sistema) {
-    int opcao = -1;
-
-    if (sistema == NULL) {
-        return;
-    }
-
-    while (opcao != 0) {
-        mostrarMenuGestao();
-        lerInteiro("Opcao: ", &opcao, 0, 9);
-
-        switch (opcao) {
-            case 1:
-                adicionarClienteBaseMenu(sistema);
-                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU","Adicionar Cliente");
-                pausarTela();
-                break;
-
-            case 2:
-                adicionarProdutoBaseMenu(sistema);
-                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU","Adicionar Produto");
-                pausarTela();
-                break;
-
-            case 3:
-                abrirCaixaManual(sistema);
-                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU","Abrir Caixa Manual");
-                pausarTela();
-                break;
-
-            case 4:
-                fecharCaixaManual(sistema);
-                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU","Fechar Caixa Manual");
-                pausarTela();
-                break;
-            
-            case 5:
-                colocarCaixaEmAutoUI(sistema);
-                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU", "Caixa colocada em controlo automatico");
-                pausarTela();
-                break;
-
-            case 6:
-                pesquisarClienteAtivoMenu(sistema);
-                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU","Pesquisar Cliente");
-                pausarTela();
-                break;
-
-            case 7:
-                listarTodosClientesMenu(sistema);
-                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU","Listar Todos os Clientes");
-                pausarTela();
-                break;
-            
-            case 8:
-                mostrarEstatisticasSimulacaoMenu(sistema);
-                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU","Mostrar Estatisticas Simulaçãoo");
-                pausarTela();
-                break;
-            
-            case 9:
-                mostrarRelatorioMemoriaMenu(sistema);
-                 adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU","Mostrar Relatório Memoria Simulação");
-                pausarTela();
-                break;
-
-            case 0:
-                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU", "Saída do menu de gestão");
-                break;
-
-            default:
-                printf("Opcao invalida.\n");
-                break;
-        }
-    }
-}
 // Adiciona um novo cliente à base de dados, garantindo capacidade dinâmica e gravando o resultado no ficheiro
 void adicionarClienteBaseMenu(SISTEMA *sistema) {
     CLIENTE_BASE *novosDados;
@@ -364,7 +271,7 @@ void mostrarEstadoResumidoSistema(SISTEMA *sistema) {
         minutos
     );
     printf("Velocidade: %dx\n", sistema->velocidadeSimulacao);
-    printf("Estado: %d\n", sistema->estadoSimulacao);
+    printf("Estado da simulacao:     %s\n",obterTextoEstadoSimulacao(sistema->estadoSimulacao));
     printf("Clientes em compras: %d\n", sistema->clientesComprando.tamanho);
     printf("Clientes ativos na hash: %d\n", sistema->clientesHash.nElementos);
     printf("Caixas abertas: %d\n", sistema->nCaixasAbertas);
@@ -381,9 +288,9 @@ void mostrarEstadoResumidoSistema(SISTEMA *sistema) {
     if (sistema->caixas != NULL) {
         for (i = 0; i < sistema->config.N_CAIXAS; i++) {
             printf(
-                "Caixa %d | Estado=%d | Abertura=%s | Fila=%d | Atendimento=%d | Total=%d | Atendidos=%d\n",
+                "Caixa %d | Estado=%-14s | Abertura=%s | Fila=%d | Atendimento=%d | Total=%d | Atendidos=%d\n",
                 sistema->caixas[i].id,
-                sistema->caixas[i].estado,
+                obterTextoEstadoCaixa(sistema->caixas[i].estado),
                 obterTextoControloCaixa(&sistema->caixas[i]),
                 sistema->caixas[i].fila.tamanho,
                 sistema->caixas[i].clienteAtual != NULL ? 1 : 0,
@@ -452,77 +359,51 @@ void pesquisarClienteAtivoMenu(SISTEMA *sistema) {
             cliente->produtos[i].preco);
     }
 }
-// Lista todos os clientes ativos na hash com paginação, permitindo navegação entre páginas no menu
-void listarTodosClientesMenu(SISTEMA *sistema) {
-    CLIENTE **lista;
-    BUCKET *bucketAtual;
-    int total = 0;
-    int i, pagina = 0;
+// Filtro genérico que considera válido qualquer cliente não nulo.
+int filtroTodosClientes(const CLIENTE *cliente) {
+    return cliente != NULL;
+}
+// Filtra clientes que estão atualmente em fila ou em atendimento nas caixas.
+int filtroClientesNasCaixas(const CLIENTE *cliente) {
+    return cliente != NULL &&
+           (cliente->estado == CLIENTE_EM_FILA ||
+            cliente->estado == CLIENTE_EM_ATENDIMENTO);
+}
+// Filtra clientes que se encontram atualmente na fase de compras.
+int filtroClientesComprando(const CLIENTE *cliente) {
+    return cliente != NULL && cliente->estado == CLIENTE_A_COMPRAR;
+}
+// Lista clientes de forma paginada com base num filtro,
+// permitindo navegar entre páginas e visualizar apenas os clientes desejados.
+void listarClientesMenu(SISTEMA *sistema, const char *titulo, FILTRO_CLIENTE filtro) {
+    CLIENTE **lista = NULL;
+    int total;
+    int pagina = 0;
     char opcao;
 
     if (sistema == NULL) {
         return;
     }
 
-    if (sistema->clientesHash.nElementos == 0) {
-        printf("Nao existem clientes ativos neste momento.\n");
-        return;
-    }
+    total = carregarClientesEmLista(sistema, &lista, filtro);
 
-    lista = (CLIENTE **)malloc(sizeof(CLIENTE *) * sistema->clientesHash.nElementos);
-
-    if (lista == NULL) {
+    if (total == -1) {
         printf("Erro de memoria.\n");
         return;
     }
 
-    bucketAtual = sistema->clientesHash.inicio;
-
-    while (bucketAtual != NULL) {
-        HASHNODE *noAtual = bucketAtual->clientes;
-
-        while (noAtual != NULL) {
-            if (noAtual->cliente != NULL) {
-                lista[total++] = noAtual->cliente;
-            }
-            noAtual = noAtual->prox;
-        }
-
-        bucketAtual = bucketAtual->prox;
+    if (total == 0) {
+        printf("Nao existem clientes para listar neste momento.\n");
+        return;
     }
 
     while (1) {
-        limparTela();
-        printf("\n%s", LINHA_SEPARADORA);
-        printf("CLIENTES ATIVOS (Pagina %d)\n", pagina + 1);
-        printf("%s", LINHA_SEPARADORA);
-
-        int inicio = pagina * 30;
-        int fim = inicio + 30;
-
-        if (fim > total) {
-            fim = total;
-        }
-
-        for (i = inicio; i < fim; i++) {
-            CLIENTE *cliente = lista[i];
-
-            printf("ID: %06d | Nome: %-50s", cliente->id, cliente->nome);
-
-            if (cliente->idCaixaAtual != ID_CAIXA_INVALIDO) {
-                printf(" | Estado: NA CAIXA | Caixa: %d\n", cliente->idCaixaAtual);
-            } else {
-                printf(" | Estado: A COMPRAR\n");
-            }
-        }
-
-        printf("\nTotal: %d\n", total);
-        printf("[A] Anterior | [P] Proxima | [S] Sair\n");
+        mostrarPaginaClientes(lista, total, pagina, titulo);
 
         scanf(" %c", &opcao);
 
         if (opcao == 'p' || opcao == 'P') {
-            if ((pagina + 1) * 30 < total) {
+            if ((pagina + 1) * CLIENTES_POR_PAGINA < total) {
                 pagina++;
             }
         } else if (opcao == 'a' || opcao == 'A') {
@@ -535,6 +416,87 @@ void listarTodosClientesMenu(SISTEMA *sistema) {
     }
 
     free(lista);
+}
+// Lista todos os clientes atualmente ativos no sistema.
+void listarTodosClientesMenu(SISTEMA *sistema) {
+    listarClientesMenu(sistema, "CLIENTES ATIVOS", filtroTodosClientes);
+}
+// Lista os clientes que estão em filas ou em atendimento nas caixas.
+void listarClientesNasCaixasMenu(SISTEMA *sistema) {
+    listarClientesMenu(sistema, "CLIENTES NAS CAIXAS", filtroClientesNasCaixas);
+}
+// Lista os clientes que se encontram atualmente na fase de compras.
+void listarClientesComprandoMenu(SISTEMA *sistema) {
+    listarClientesMenu(sistema, "CLIENTES A COMPRAR", filtroClientesComprando);
+}
+// Mostra uma página da listagem de clientes,
+// exibindo ID, nome, estado atual e caixa associada quando aplicável.
+void mostrarPaginaClientes(CLIENTE **lista, int total, int pagina, const char *titulo) {
+    int i;
+    int inicio = pagina * CLIENTES_POR_PAGINA;
+    int fim = inicio + CLIENTES_POR_PAGINA;
+
+    if (fim > total) {
+        fim = total;
+    }
+
+    limparTela();
+    printf("\n%s", LINHA_SEPARADORA);
+    printf("%s (Pagina %d)\n", titulo, pagina + 1);
+    printf("%s", LINHA_SEPARADORA);
+
+    for (i = inicio; i < fim; i++) {
+        CLIENTE *cliente = lista[i];
+
+        printf("ID: %06d | Nome: %-50s", cliente->id, cliente->nome);
+
+        if (cliente->estado == CLIENTE_EM_ATENDIMENTO) {
+            printf(" | Estado: EM ATENDIMENTO | Caixa: %d\n", cliente->idCaixaAtual);
+        } else if (cliente->estado == CLIENTE_EM_FILA) {
+            printf(" | Estado: EM FILA | Caixa: %d\n", cliente->idCaixaAtual);
+        } else if (cliente->estado == CLIENTE_A_COMPRAR) {
+            printf(" | Estado: A COMPRAR\n");
+        } else {
+            printf(" | Estado: ATENDIDO\n");
+        }
+    }
+
+    printf("\nTotal: %d\n", total);
+    printf("[A] Anterior | [P] Proxima | [S] Sair\n");
+}
+// Percorre a hash table de clientes e carrega numa lista
+// apenas os clientes que satisfazem o filtro fornecido.
+int carregarClientesEmLista(SISTEMA *sistema, CLIENTE ***lista, FILTRO_CLIENTE filtro) {
+    int i;
+    int total = 0;
+
+    if (sistema == NULL || lista == NULL || filtro == NULL) {
+        return 0;
+    }
+
+    if (sistema->clientesHash.nElementos == 0) {
+        return 0;
+    }
+
+    *lista = (CLIENTE **)malloc(sizeof(CLIENTE *) * sistema->clientesHash.nElementos);
+
+    if (*lista == NULL) {
+        return -1;
+    }
+
+    for (i = 0; i < sistema->clientesHash.nBuckets; i++) {
+        HASHNODE *noAtual = sistema->clientesHash.buckets[i].clientes;
+
+        while (noAtual != NULL) {
+            if (filtro(noAtual->cliente)) {
+                (*lista)[total++] = noAtual->cliente;
+            }
+
+            noAtual = noAtual->prox;
+        }
+    }
+
+    return total;
 }
 // Permite alterar a velocidade da simulação através de um menu de opções predefinidas
 void alterarVelocidadeSimulacao(SISTEMA *sistema) {
@@ -639,19 +601,34 @@ void mostrarEstatisticasSimulacaoMenu(SISTEMA *sistema) {
     limparTela();
     mostrarCabecalho("ESTATISTICAS DA SIMULACAO");
 
+    printf("\n%s", LINHA_SEPARADORA);
+    printf("RESUMO GERAL\n");
+    printf("%s", LINHA_SEPARADORA);
     printf("Tempo de simulacao: %d\n", sistema->estatisticas.tempoSimulacao);
     printf("Clientes gerados: %d\n", sistema->estatisticas.totalClientesGerados);
     printf("Clientes atendidos: %d\n", sistema->estatisticas.totalClientesAtendidos);
+
+    printf("\n%s", LINHA_SEPARADORA);
+    printf("VENDAS\n");
+    printf("%s", LINHA_SEPARADORA);
     printf("Produtos vendidos: %d\n", sistema->estatisticas.totalProdutosVendidos);
     printf("Valor total vendido: %.2f\n", sistema->estatisticas.totalValorVendido);
     printf("Produtos oferecidos: %d\n", sistema->estatisticas.totalProdutosOferecidos);
     printf("Valor total oferecido: %.2f\n", sistema->estatisticas.totalValorOferecido);
-    printf("Receita liquida: %.2f\n",sistema->estatisticas.totalValorVendido - sistema->estatisticas.totalValorOferecido);
+    printf("Receita liquida: %.2f\n", sistema->estatisticas.totalValorVendido - sistema->estatisticas.totalValorOferecido);
+
+    printf("\n%s", LINHA_SEPARADORA);
+    printf("FILAS E ESPERA\n");
+    printf("%s", LINHA_SEPARADORA);
     printf("Mudancas de fila: %d\n", sistema->estatisticas.totalMudancasFila);
-    printf("Aberturas automaticas: %d\n", sistema->estatisticas.totalAberturasAutomaticas);
-    printf("Encerramentos automaticos: %d\n", sistema->estatisticas.totalEncerramentosAutomaticos);
     printf("Soma tempos espera: %.2f\n", sistema->estatisticas.somaTemposEspera);
     printf("Tempo medio espera: %.2f\n", sistema->estatisticas.tempoMedioEspera);
+
+    printf("\n%s", LINHA_SEPARADORA);
+    printf("CAIXAS\n");
+    printf("%s", LINHA_SEPARADORA);
+    printf("Aberturas automaticas: %d\n", sistema->estatisticas.totalAberturasAutomaticas);
+    printf("Encerramentos automaticos: %d\n", sistema->estatisticas.totalEncerramentosAutomaticos);
     printf("Caixa com mais clientes: %d\n", sistema->estatisticas.idCaixaMaisClientes);
     printf("Caixa com mais produtos: %d\n", sistema->estatisticas.idCaixaMaisProdutos);
 
@@ -726,28 +703,24 @@ void mostrarRelatorioMemoriaMenu(SISTEMA *sistema) {
     size_t memoriaCaixas = 0;
     size_t memoriaTotal;
     size_t memoriaDesperdicada;
+    size_t memoriaDesperdicadaNomes;
     int i;
-    BUCKET *bucketAtual;
 
     if (sistema == NULL) {
         return;
     }
 
-    bucketAtual = sistema->clientesHash.inicio;
+    for (i = 0; i < sistema->clientesHash.nBuckets; i++) {
+    HASHNODE *noAtual = sistema->clientesHash.buckets[i].clientes;
 
-    while (bucketAtual != NULL) {
-        HASHNODE *noAtual = bucketAtual->clientes;
-
-        while (noAtual != NULL) {
-            if (noAtual->cliente != NULL) {
-                memoriaClientesAtivos += calcularMemoriaCliente(noAtual->cliente);
-            }
-
-            noAtual = noAtual->prox;
+    while (noAtual != NULL) {
+        if (noAtual->cliente != NULL) {
+            memoriaClientesAtivos += calcularMemoriaCliente(noAtual->cliente);
         }
 
-        bucketAtual = bucketAtual->prox;
+        noAtual = noAtual->prox;
     }
+}
 
     if (sistema->caixas != NULL) {
         for (i = 0; i < sistema->config.N_CAIXAS; i++) {
@@ -762,12 +735,14 @@ void mostrarRelatorioMemoriaMenu(SISTEMA *sistema) {
     memoriaLogs = calcularMemoriaLogs(&sistema->logs);
     memoriaTotal = calcularMemoriaSistema(sistema);
     memoriaDesperdicada = calcularMemoriaDesperdicadaSistema(sistema);
+    memoriaDesperdicadaNomes = calcularMemoriaDesperdicadaNomes(sistema);
 
     limparTela();
     mostrarCabecalho("RELATORIO DE MEMORIA");
 
     printf("Memoria total estimada das estruturas do sistema: %zu bytes\n", memoriaTotal);
-    printf("Memoria desperdicada estimada nas bases dinamicas: %zu bytes\n\n", memoriaDesperdicada);
+    printf("Memoria desperdicada estimada nas bases dinamicas: %zu bytes\n", memoriaDesperdicada);
+    printf("Memoria desperdicada estimada nos Nomes nas bases dinamicas: %zu bytes\n\n", memoriaDesperdicadaNomes);
 
     printf("Detalhe por estrutura:\n");
     printf("  Bases carregadas: %zu bytes\n", calcularMemoriaBases(sistema));
@@ -776,7 +751,7 @@ void mostrarRelatorioMemoriaMenu(SISTEMA *sistema) {
     printf("  Hash de clientes: %zu bytes\n", memoriaHash);
     printf("  Lista de compras: %zu bytes\n", memoriaListaCompras);
     printf("  Logs: %zu bytes\n", memoriaLogs);
-    printf("  Clientes ativos e produtos associados: %zu bytes\n", memoriaClientesAtivos);
+    printf("  Clientes da simulação e produtos associados: %zu bytes\n", memoriaClientesAtivos);
 }
 // Interface para colocar uma caixa em modo automático, registando a ação no log do sistema
 int colocarCaixaEmAutoUI(SISTEMA *sistema) {
@@ -801,4 +776,269 @@ int colocarCaixaEmAutoUI(SISTEMA *sistema) {
 
     printf("Nao foi possivel alterar a caixa %d.\n", idCaixa);
     return 0;
+}
+// Mostra o menu de gestão administrativa com opções de configuração e controlo do sistema
+void mostrarMenuGestao() {
+    limparTela();
+    mostrarCabecalho("MENU DE GESTAO");
+    printf("1. Menu Clientes\n");
+    printf("2. Menu Produtos\n");
+    printf("3. Menu Caixas\n");
+    printf("4. Menu Relatórios\n");
+    printf("0. Voltar\n");
+    printf("%s", LINHA_SEPARADORA);
+}
+// Executa o menu de gestão, permitindo operações administrativas enquanto regista ações no log do sistema
+void executarMenuGestao(SISTEMA *sistema) {
+    int opcao = -1;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    while (opcao != 0) {
+        mostrarMenuGestao();
+        lerInteiro("Opcao: ", &opcao, 0, 4);
+
+        switch (opcao) {
+            case 1:
+                executarMenuClientes(sistema);
+                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU GESTAO","Entrar Menu Clientes");
+                break;
+
+            case 2:
+                executarMenuProdutos(sistema);
+                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU GESTAO","Entrar Menu Produtos");
+                break;
+
+            case 3:
+                executarMenuCaixas(sistema);
+                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU GESTAO","Entrar Menu Caixas");
+                break;
+
+            case 4:
+                executarMenuRelatorios(sistema);
+                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU GESTAO","Entrar Menu Relatórios");
+                break;
+
+            case 0:
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU GESTAO", "Saída do menu de gestão");
+                break;
+
+            default:
+                printf("Opcao invalida.\n");
+                break;
+        }
+    }
+}
+// Mostra o menu de gestão de clientes
+void mostrarMenuClientes() {
+    limparTela();
+    mostrarCabecalho("MENU CLIENTES");
+    printf("1. Adicionar cliente base\n");
+    printf("2. Pesquisar cliente ativo\n");
+    printf("3. Listar todos os clientes\n");
+    printf("4. Listar clientes comprando\n");
+    printf("5. Listar clientes nas caixas\n");
+    printf("0. Voltar\n");
+    printf("%s", LINHA_SEPARADORA);
+}
+// Executa o menu de gestão de clientes
+void executarMenuClientes(SISTEMA *sistema) {
+    int opcao = -1;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    while (opcao != 0) {
+        mostrarMenuClientes();
+        lerInteiro("Opcao: ", &opcao, 0, 5);
+
+        switch (opcao) {
+            case 1:
+                adicionarClienteBaseMenu(sistema);
+                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU CLIENTE","Adicionar Cliente");
+                pausarTela();
+                break;
+
+            case 2:
+                pesquisarClienteAtivoMenu(sistema);
+                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU CLIENTE","Pesquisar Cliente");
+                pausarTela();
+                break;
+
+            case 3:
+                listarTodosClientesMenu(sistema);
+                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU CLIENTE","Listar Todos os Clientes");
+                pausarTela();
+                break;
+
+            case 4:
+                listarClientesComprandoMenu(sistema);
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU CLIENTE", "Listar Clientes Comprando");
+                pausarTela();
+                break;
+            
+            case 5:
+                listarClientesNasCaixasMenu(sistema);
+                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU CLIENTE","Listar Clientes em Caixa");
+                pausarTela();
+                break;
+
+            case 0:
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU CLIENTE", "Saída do Menu Clientes");
+                break;
+
+            default:
+                printf("Opcao invalida.\n");
+                break;
+        }
+    }
+}
+// Mostra o menu de gestão de produtos
+void mostrarMenuProdutos() {
+    limparTela();
+    mostrarCabecalho("MENU PRODUTOS");
+    printf("1. Adicionar produto base\n");
+    printf("2. Pesquisar produto por ID\n");
+    printf("3. Listar produtos\n");
+    printf("0. Voltar\n");
+    printf("%s", LINHA_SEPARADORA);
+}
+// Executa o menu de gestão de produtos
+void executarMenuProdutos(SISTEMA *sistema) {
+    int opcao = -1;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    while (opcao != 0) {
+        mostrarMenuProdutos();
+        lerInteiro("Opcao: ", &opcao, 0, 3);
+
+        switch (opcao) {
+            case 1:
+                adicionarProdutoBaseMenu(sistema);
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU PRODUTOS", "Adicionar Produto");
+                pausarTela();
+                break;
+
+            case 2:
+                procurarProdutoPorId(&sistema->baseProdutos);
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU PRODUTOS", "Pesquisar Produto por ID");
+                pausarTela();
+                break;
+
+            case 3:
+                listarProdutosPaginado(&sistema->baseProdutos);
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU PRODUTOS", "Listar Produtos");
+                pausarTela();
+                break;
+
+            case 0:
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU PRODUTOS", "Saída do Menu Produtos");
+                break;
+
+            default:
+                printf("Opcao invalida.\n");
+                break;
+        }
+    }
+}
+// Mostra o menu de gestão de caixas
+void mostrarMenuCaixas() {
+    limparTela();
+    mostrarCabecalho("MENU CAIXAS");
+    printf("1. Abrir caixa manualmente\n");
+    printf("2. Fechar caixa manualmente\n");
+    printf("3. Passar caixa a AUTO\n");
+    printf("0. Voltar\n");
+    printf("%s", LINHA_SEPARADORA);
+}
+// Executa o menu de gestão de caixas
+void executarMenuCaixas(SISTEMA *sistema) {
+    int opcao = -1;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    while (opcao != 0) {
+        mostrarMenuCaixas();
+        lerInteiro("Opcao: ", &opcao, 0, 3);
+
+        switch (opcao) {
+            case 1:
+                abrirCaixaManual(sistema);
+                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU CAIXAS","Abrir Caixa Manual");
+                pausarTela();
+                break;
+
+            case 2:
+                fecharCaixaManual(sistema);
+                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU CAIXAS","Fechar Caixa Manual");
+                pausarTela();
+                break;
+            
+            case 3:
+                colocarCaixaEmAutoUI(sistema);
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU CAIXAS", "Caixa colocada em controlo automatico");
+                pausarTela();
+                break;
+
+            case 0:
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU CAIXAS", "Saída do Menu Caixas");
+                break;
+
+            default:
+                printf("Opcao invalida.\n");
+                break;
+        }
+    }
+}
+// Mostra o menu de gestão de relatórios
+void mostrarMenuRelatorios() {
+    limparTela();
+    mostrarCabecalho("MENU RELATORIOS");
+    printf("1. Mostrar estatísticas da simulação\n");
+    printf("2. Mostrar relatório de memória\n");
+    printf("0. Voltar\n");
+    printf("%s", LINHA_SEPARADORA);
+}
+// Executa o menu de gestão de relatórios
+void executarMenuRelatorios(SISTEMA *sistema) {
+    int opcao = -1;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    while (opcao != 0) {
+        mostrarMenuRelatorios();
+        lerInteiro("Opcao: ", &opcao, 0, 2);
+
+        switch (opcao) {
+            case 1:
+                mostrarEstatisticasSimulacaoMenu(sistema);
+                adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU RELATORIOS","Mostrar Estatisticas Simulação");
+                pausarTela();
+                break;
+            
+            case 2:
+                mostrarRelatorioMemoriaMenu(sistema);
+                 adicionarLog(&sistema->logs,sistema->tempoAtual,"MENU RELATORIOS","Mostrar Relatório Memoria Simulação");
+                pausarTela();
+                break;
+
+            case 0:
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU RELATORIOS", "Saída do Menu Relatorios");
+                break;
+
+            default:
+                printf("Opcao invalida.\n");
+                break;
+        }
+    }
 }

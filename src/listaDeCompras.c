@@ -21,6 +21,7 @@ int listaComprasEstaVazia(LISTA_CLIENTES_COMPRANDO *lista) {
     return lista->inicio == NULL;
 }
 // Insere um cliente na lista de compras de forma ordenada pelo tempo previsto de fim das compras
+// Pela lógica dessa função, o cliente que sai primeiro está no início da lista
 int inserirClienteOrdenadoListaCompras(LISTA_CLIENTES_COMPRANDO *lista, CLIENTE *cliente) {
     NO_CLIENTE_COMPRANDO *novoNo;
     NO_CLIENTE_COMPRANDO *atual;

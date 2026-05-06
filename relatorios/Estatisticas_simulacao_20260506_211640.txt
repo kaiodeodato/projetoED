@@ -1,0 +1,35 @@
+
+________________________________
+RESUMO GERAL
+________________________________
+Tempo de simulacao: 1562
+Clientes gerados: 107
+Clientes atendidos: 60
+
+________________________________
+VENDAS
+________________________________
+Produtos vendidos: 1017
+Valor total vendido: 4098.43
+Produtos oferecidos: 0
+Valor total oferecido: 0.00
+Receita liquida: 4098.43
+
+________________________________
+FILAS E ESPERA
+________________________________
+Mudancas de fila: 14
+Soma tempos espera: 1252.00
+Tempo medio espera: 20.87
+
+________________________________
+CAIXAS
+________________________________
+Aberturas automaticas: 9
+Encerramentos automaticos: 9
+Caixa com mais clientes: 0
+Caixa com mais produtos: 0
+Operador com menos atendimentos: 9164 - Carolina Rita Cruz Almeida (0 atendimentos)
+Operador com mais atendimentos: 4322 - Joana Manies Ferreira Bastos (37 atendimentos)
+Cliente que mais gastou: 773112 - Duarte Ferreira Almada (205.56)
+Cliente que menos gastou: 182725 - Carina Almada Caneco (1.99)

@@ -158,8 +158,8 @@ int carregarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro) {
         produto.tempoDeProcura = tempoProcura;
         produto.tempoDePagamento = tempoPagamento;
 
-        strncpy(produto.nome, nomeTemp, MAX_NOME - 1);
-        produto.nome[MAX_NOME - 1] = '\0';
+        strncpy(produto.nome, nomeTemp, MAX_NOME_PRODUTO - 1);
+        produto.nome[MAX_NOME_PRODUTO - 1] = '\0';
 
         if (!garantirCapacidadeProdutos(base)) {
             fclose(ficheiro);
@@ -346,19 +346,34 @@ int escreverRelatorioEstatisticas(SISTEMA *sistema, char *nomeFicheiro) {
         }
     }
 
+    fprintf(ficheiro, "\n%s", LINHA_SEPARADORA);
+    fprintf(ficheiro, "RESUMO GERAL\n");
+    fprintf(ficheiro, "%s", LINHA_SEPARADORA);
     fprintf(ficheiro, "Tempo de simulacao: %d\n", sistema->estatisticas.tempoSimulacao);
     fprintf(ficheiro, "Clientes gerados: %d\n", sistema->estatisticas.totalClientesGerados);
     fprintf(ficheiro, "Clientes atendidos: %d\n", sistema->estatisticas.totalClientesAtendidos);
+
+    fprintf(ficheiro, "\n%s", LINHA_SEPARADORA);
+    fprintf(ficheiro, "VENDAS\n");
+    fprintf(ficheiro, "%s", LINHA_SEPARADORA);
     fprintf(ficheiro, "Produtos vendidos: %d\n", sistema->estatisticas.totalProdutosVendidos);
     fprintf(ficheiro, "Valor total vendido: %.2f\n", sistema->estatisticas.totalValorVendido);
     fprintf(ficheiro, "Produtos oferecidos: %d\n", sistema->estatisticas.totalProdutosOferecidos);
     fprintf(ficheiro, "Valor total oferecido: %.2f\n", sistema->estatisticas.totalValorOferecido);
-    fprintf(ficheiro, "Receita liquida: %.2f\n",sistema->estatisticas.totalValorVendido - sistema->estatisticas.totalValorOferecido);
+    fprintf(ficheiro, "Receita liquida: %.2f\n", sistema->estatisticas.totalValorVendido - sistema->estatisticas.totalValorOferecido);
+
+    fprintf(ficheiro, "\n%s", LINHA_SEPARADORA);
+    fprintf(ficheiro, "FILAS E ESPERA\n");
+    fprintf(ficheiro, "%s", LINHA_SEPARADORA);
     fprintf(ficheiro, "Mudancas de fila: %d\n", sistema->estatisticas.totalMudancasFila);
-    fprintf(ficheiro, "Aberturas automaticas: %d\n", sistema->estatisticas.totalAberturasAutomaticas);
-    fprintf(ficheiro, "Encerramentos automaticos: %d\n", sistema->estatisticas.totalEncerramentosAutomaticos);
     fprintf(ficheiro, "Soma tempos espera: %.2f\n", sistema->estatisticas.somaTemposEspera);
     fprintf(ficheiro, "Tempo medio espera: %.2f\n", sistema->estatisticas.tempoMedioEspera);
+
+    fprintf(ficheiro, "\n%s", LINHA_SEPARADORA);
+    fprintf(ficheiro, "CAIXAS\n");
+    fprintf(ficheiro, "%s", LINHA_SEPARADORA);
+    fprintf(ficheiro, "Aberturas automaticas: %d\n", sistema->estatisticas.totalAberturasAutomaticas);
+    fprintf(ficheiro, "Encerramentos automaticos: %d\n", sistema->estatisticas.totalEncerramentosAutomaticos);
     fprintf(ficheiro, "Caixa com mais clientes: %d\n", sistema->estatisticas.idCaixaMaisClientes);
     fprintf(ficheiro, "Caixa com mais produtos: %d\n", sistema->estatisticas.idCaixaMaisProdutos);
 
@@ -454,7 +469,7 @@ int garantirCapacidadeClientes(BASE_CLIENTES *base) {
         return 1;
     }
 
-    novaCapacidade = base->capacidade * FATOR_CRESCIMENTO_VETORES;
+    novaCapacidade = base->capacidade + FATOR_CRESCIMENTO_VETORES;
     novosDados = (CLIENTE_BASE *)realloc(base->dados, sizeof(CLIENTE_BASE) * novaCapacidade);
     if (novosDados == NULL) {
         return 0;
@@ -487,7 +502,7 @@ int garantirCapacidadeProdutos(BASE_PRODUTOS *base) {
         return 1;
     }
 
-    novaCapacidade = base->capacidade * FATOR_CRESCIMENTO_VETORES;
+    novaCapacidade = base->capacidade + FATOR_CRESCIMENTO_VETORES;
     novosDados = (PRODUTO *)realloc(base->dados, sizeof(PRODUTO) * novaCapacidade);
     if (novosDados == NULL) {
         return 0;
@@ -520,7 +535,7 @@ int garantirCapacidadeColaboradores(BASE_COLABORADORES *base) {
         return 1;
     }
 
-    novaCapacidade = base->capacidade * FATOR_CRESCIMENTO_VETORES;
+    novaCapacidade = base->capacidade + FATOR_CRESCIMENTO_VETORES;
     novosDados = (COLABORADOR *)realloc(base->dados, sizeof(COLABORADOR) * novaCapacidade);
     if (novosDados == NULL) {
         return 0;

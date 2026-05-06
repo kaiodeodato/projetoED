@@ -48,7 +48,7 @@ int gerarNovosClientes(SISTEMA *sistema) {
         return 0;
     }
 
-    if (Aleatorio(1, 100) > 25) {
+    if (Aleatorio(1, 100) > 15) {
         return 0;
     }
 

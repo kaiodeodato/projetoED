@@ -34,5 +34,7 @@ char obterCharLoading(int passo);
 int obterDelayPorVelocidade(int velocidade);
 char *obterTextoControloCaixa(CAIXA *caixa);
 void reinicializarEstadoSimulacao(SISTEMA *sistema);
+char *obterTextoEstadoCaixa(ESTADO_CAIXA estado);
+char *obterTextoEstadoSimulacao(ESTADO_SIMULACAO estado);
 
 #endif

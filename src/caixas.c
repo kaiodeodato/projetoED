@@ -121,6 +121,178 @@ CAIXA *obterCaixaComMenorTempoEstimado(SISTEMA *sistema) {
 
     return melhorCaixa;
 }
+// Calcula o tempo total estimado de espera na caixa somando o atendimento atual e os pagamentos dos clientes na fila
+int calcularTempoEstimadoCaixa(CAIXA *caixa) {
+    ELEMENTO *atual;
+    int tempoTotal = 0;
+
+    if (caixa == NULL) {
+        return 0;
+    }
+
+    tempoTotal += calcularTempoRestanteClienteAtual(caixa);
+
+    atual = caixa->fila.inicio;
+    while (atual != NULL) {
+        if (atual->cliente != NULL) {
+            tempoTotal += atual->cliente->tempoTotalPagamento;
+        }
+        atual = atual->seguinte;
+    }
+
+    return tempoTotal;
+}
+// Encaminha o cliente para a melhor caixa disponível (menor tempo estimado ou primeira aberta)
+int encaminharClienteParaMelhorCaixa(SISTEMA *sistema, CLIENTE *cliente) {
+    CAIXA *caixaDestino;
+
+    if (sistema == NULL || cliente == NULL) {
+        return 0;
+    }
+
+    caixaDestino = obterCaixaComMenorTempoEstimado(sistema);
+    if (caixaDestino == NULL) {
+        caixaDestino = obterPrimeiraCaixaAberta(sistema);
+    }
+
+    if (caixaDestino == NULL) {
+        return 0;
+    }
+
+    return adicionarClienteNaCaixa(caixaDestino, cliente, sistema->tempoAtual);
+}
+// Adiciona um cliente à fila da caixa, atualizando seu estado e o tempo estimado de espera
+int adicionarClienteNaCaixa(CAIXA *caixa, CLIENTE *cliente, int instanteAtual) {
+    if (caixa == NULL || cliente == NULL) {
+        return 0;
+    }
+
+    if (!caixaAceitaNovosClientes(caixa)) {
+        return 0;
+    }
+
+    registarEntradaFilaCliente(cliente, instanteAtual);
+    cliente->idCaixaAtual = caixa->id;
+
+    if (!enfileirarCliente(&caixa->fila, cliente)) {
+        return 0;
+    }
+
+    atualizarTempoEstimadoCaixa(caixa);
+    return 1;
+}
+// Inicia o atendimento do próximo cliente na fila se a caixa estiver disponível, fechando-a se necessário
+int iniciarAtendimentoSeNecessario(SISTEMA *sistema, CAIXA *caixa) {
+    CLIENTE *cliente;
+
+    if (sistema == NULL || caixa == NULL) {
+        return 0;
+    }
+
+    if (caixa->clienteAtual != NULL) {
+        return 0;
+    }
+
+    if (filaEstaVazia(&caixa->fila)) {
+        if (caixaEstaEmEncerramento(caixa)) {
+            fecharCaixa(sistema, caixa->id, 0);
+        }
+        atualizarTempoEstimadoCaixa(caixa);
+        return 0;
+    }
+
+    if (!caixaEstaAberta(caixa) && !caixaEstaEmEncerramento(caixa)) {
+        return 0;
+    }
+
+    cliente = desenfileirarCliente(&caixa->fila);
+    if (cliente == NULL) {
+        atualizarTempoEstimadoCaixa(caixa);
+        return 0;
+    }
+
+    caixa->clienteAtual = cliente;
+    cliente->idCaixaAtual = caixa->id;
+    iniciarAtendimentoCliente(cliente, sistema->tempoAtual);
+
+    atualizarTempoEstimadoCaixa(caixa);
+    return 1;
+}
+// Finaliza o atendimento de um cliente concluído, atualizando estatísticas e fechando a caixa se necessário
+int finalizarAtendimentoSeConcluido(SISTEMA *sistema, CAIXA *caixa) {
+    CLIENTE *cliente;
+
+    if (sistema == NULL || caixa == NULL || caixa->clienteAtual == NULL) {
+        return 0;
+    }
+
+    cliente = caixa->clienteAtual;
+
+    if (!clienteTerminouAtendimento(cliente)) {
+        atualizarTempoEstimadoCaixa(caixa);
+        return 0;
+    }
+
+    finalizarAtendimentoCliente(cliente, sistema->tempoAtual);
+
+    caixa->clientesAtendidos++;
+    caixa->totalProdutosVendidos += cliente->nProdutos;
+    caixa->totalValorVendido += cliente->valorTotalCompras;
+
+    if (clienteRecebeuOferta(cliente)) {
+        caixa->totalProdutosOferecidos++;
+        caixa->totalValorOferecido += cliente->valorOferta;
+        registarProdutoOferecido(&sistema->estatisticas, cliente->valorOferta);
+    }
+
+    adicionarClienteAoHistoricoCaixa(caixa, cliente);
+
+    registarClienteAtendido(&sistema->estatisticas);
+    registarProdutoVendido(&sistema->estatisticas, cliente->nProdutos, cliente->valorTotalCompras);
+    atualizarTempoEspera(&sistema->estatisticas,
+                         calcularTempoEsperaCliente(cliente, cliente->instanteInicioAtendimento));
+
+    if (caixa->operador != NULL) {
+        incrementarClientesAtendidosColaborador(caixa->operador);
+    }
+
+    removerClienteHash(&sistema->clientesHash, cliente->id);
+
+    caixa->clienteAtual = NULL;
+    atualizarTempoEstimadoCaixa(caixa);
+
+    if (caixaEstaEmEncerramento(caixa) && !caixaTemClientes(caixa)) {
+        fecharCaixa(sistema, caixa->id, 0);
+    }
+
+    return 1;
+}
+// Adiciona um cliente ao histórico da caixa, mantendo a lista encadeada de atendimentos
+void adicionarClienteAoHistoricoCaixa(CAIXA *caixa, CLIENTE *cliente) {
+    NO_HISTORICO_CLIENTE *novoNo;
+
+    if (caixa == NULL || cliente == NULL) {
+        return;
+    }
+
+    novoNo = (NO_HISTORICO_CLIENTE *)malloc(sizeof(NO_HISTORICO_CLIENTE));
+    if (novoNo == NULL) {
+        return;
+    }
+
+    novoNo->cliente = cliente;
+    novoNo->seguinte = NULL;
+
+    if (caixa->historicoClientes.fim == NULL) {
+        caixa->historicoClientes.inicio = novoNo;
+        caixa->historicoClientes.fim = novoNo;
+    } else {
+        caixa->historicoClientes.fim->seguinte = novoNo;
+        caixa->historicoClientes.fim = novoNo;
+    }
+
+    caixa->historicoClientes.tamanho++;
+}
 // Conta e retorna o número de caixas atualmente abertas no sistema
 int contarCaixasAbertas(SISTEMA *sistema) {
     int i;
@@ -358,45 +530,6 @@ int colocarCaixaEmAuto(SISTEMA *sistema, int idCaixa) {
 
     return 1;
 }
-// Encaminha o cliente para a melhor caixa disponível (menor tempo estimado ou primeira aberta)
-int encaminharClienteParaMelhorCaixa(SISTEMA *sistema, CLIENTE *cliente) {
-    CAIXA *caixaDestino;
-
-    if (sistema == NULL || cliente == NULL) {
-        return 0;
-    }
-
-    caixaDestino = obterCaixaComMenorTempoEstimado(sistema);
-    if (caixaDestino == NULL) {
-        caixaDestino = obterPrimeiraCaixaAberta(sistema);
-    }
-
-    if (caixaDestino == NULL) {
-        return 0;
-    }
-
-    return adicionarClienteNaCaixa(caixaDestino, cliente, sistema->tempoAtual);
-}
-// Adiciona um cliente à fila da caixa, atualizando seu estado e o tempo estimado de espera
-int adicionarClienteNaCaixa(CAIXA *caixa, CLIENTE *cliente, int instanteAtual) {
-    if (caixa == NULL || cliente == NULL) {
-        return 0;
-    }
-
-    if (!caixaAceitaNovosClientes(caixa)) {
-        return 0;
-    }
-
-    registarEntradaFilaCliente(cliente, instanteAtual);
-    cliente->idCaixaAtual = caixa->id;
-
-    if (!enfileirarCliente(&caixa->fila, cliente)) {
-        return 0;
-    }
-
-    atualizarTempoEstimadoCaixa(caixa);
-    return 1;
-}
 // Redistribui os clientes da fila de uma caixa para outras disponíveis, ao fechá-la
 int redistribuirClientesCaixaFechada(SISTEMA *sistema, int idCaixa) {
     CAIXA *caixaOrigem;
@@ -431,92 +564,6 @@ int redistribuirClientesCaixaFechada(SISTEMA *sistema, int idCaixa) {
     atualizarTempoEstimadoCaixa(caixaOrigem);
     return totalRedistribuido;
 }
-// Inicia o atendimento do próximo cliente na fila se a caixa estiver disponível, fechando-a se necessário
-int iniciarAtendimentoSeNecessario(SISTEMA *sistema, CAIXA *caixa) {
-    CLIENTE *cliente;
-
-    if (sistema == NULL || caixa == NULL) {
-        return 0;
-    }
-
-    if (caixa->clienteAtual != NULL) {
-        return 0;
-    }
-
-    if (filaEstaVazia(&caixa->fila)) {
-        if (caixaEstaEmEncerramento(caixa)) {
-            fecharCaixa(sistema, caixa->id, 0);
-        }
-        atualizarTempoEstimadoCaixa(caixa);
-        return 0;
-    }
-
-    if (!caixaEstaAberta(caixa) && !caixaEstaEmEncerramento(caixa)) {
-        return 0;
-    }
-
-    cliente = desenfileirarCliente(&caixa->fila);
-    if (cliente == NULL) {
-        atualizarTempoEstimadoCaixa(caixa);
-        return 0;
-    }
-
-    caixa->clienteAtual = cliente;
-    cliente->idCaixaAtual = caixa->id;
-    iniciarAtendimentoCliente(cliente, sistema->tempoAtual);
-
-    atualizarTempoEstimadoCaixa(caixa);
-    return 1;
-}
-// Finaliza o atendimento de um cliente concluído, atualizando estatísticas e fechando a caixa se necessário
-int finalizarAtendimentoSeConcluido(SISTEMA *sistema, CAIXA *caixa) {
-    CLIENTE *cliente;
-
-    if (sistema == NULL || caixa == NULL || caixa->clienteAtual == NULL) {
-        return 0;
-    }
-
-    cliente = caixa->clienteAtual;
-
-    if (!clienteTerminouAtendimento(cliente)) {
-        atualizarTempoEstimadoCaixa(caixa);
-        return 0;
-    }
-
-    finalizarAtendimentoCliente(cliente, sistema->tempoAtual);
-
-    caixa->clientesAtendidos++;
-    caixa->totalProdutosVendidos += cliente->nProdutos;
-    caixa->totalValorVendido += cliente->valorTotalCompras;
-
-    if (clienteRecebeuOferta(cliente)) {
-        caixa->totalProdutosOferecidos++;
-        caixa->totalValorOferecido += cliente->valorOferta;
-        registarProdutoOferecido(&sistema->estatisticas, cliente->valorOferta);
-    }
-
-    adicionarClienteAoHistoricoCaixa(caixa, cliente);
-
-    registarClienteAtendido(&sistema->estatisticas);
-    registarProdutoVendido(&sistema->estatisticas, cliente->nProdutos, cliente->valorTotalCompras);
-    atualizarTempoEspera(&sistema->estatisticas,
-                         calcularTempoEsperaCliente(cliente, cliente->instanteInicioAtendimento));
-
-    if (caixa->operador != NULL) {
-        incrementarClientesAtendidosColaborador(caixa->operador);
-    }
-
-    removerClienteHash(&sistema->clientesHash, cliente->id);
-
-    caixa->clienteAtual = NULL;
-    atualizarTempoEstimadoCaixa(caixa);
-
-    if (caixaEstaEmEncerramento(caixa) && !caixaTemClientes(caixa)) {
-        fecharCaixa(sistema, caixa->id, 0);
-    }
-
-    return 1;
-}
 // Retorna o tempo restante de atendimento do cliente atual da caixa, ou 0 se não houver ou já terminou
 int calcularTempoRestanteClienteAtual(CAIXA *caixa) {
     if (caixa == NULL || caixa->clienteAtual == NULL) {
@@ -528,27 +575,6 @@ int calcularTempoRestanteClienteAtual(CAIXA *caixa) {
     }
 
     return 0;
-}
-// Calcula o tempo total estimado de espera na caixa somando o atendimento atual e os pagamentos dos clientes na fila
-int calcularTempoEstimadoCaixa(CAIXA *caixa) {
-    ELEMENTO *atual;
-    int tempoTotal = 0;
-
-    if (caixa == NULL) {
-        return 0;
-    }
-
-    tempoTotal += calcularTempoRestanteClienteAtual(caixa);
-
-    atual = caixa->fila.inicio;
-    while (atual != NULL) {
-        if (atual->cliente != NULL) {
-            tempoTotal += atual->cliente->tempoTotalPagamento;
-        }
-        atual = atual->seguinte;
-    }
-
-    return tempoTotal;
 }
 // Retorna o número total de clientes na caixa, incluindo o cliente em atendimento e os que estão na fila
 int obterNumeroClientesCaixa(CAIXA *caixa) {
@@ -565,32 +591,6 @@ void atualizarTempoEstimadoCaixa(CAIXA *caixa) {
     }
 
     caixa->tempoTotalEstimadoFila = calcularTempoEstimadoCaixa(caixa);
-}
-// Adiciona um cliente ao histórico da caixa, mantendo a lista encadeada de atendimentos
-void adicionarClienteAoHistoricoCaixa(CAIXA *caixa, CLIENTE *cliente) {
-    NO_HISTORICO_CLIENTE *novoNo;
-
-    if (caixa == NULL || cliente == NULL) {
-        return;
-    }
-
-    novoNo = (NO_HISTORICO_CLIENTE *)malloc(sizeof(NO_HISTORICO_CLIENTE));
-    if (novoNo == NULL) {
-        return;
-    }
-
-    novoNo->cliente = cliente;
-    novoNo->seguinte = NULL;
-
-    if (caixa->historicoClientes.fim == NULL) {
-        caixa->historicoClientes.inicio = novoNo;
-        caixa->historicoClientes.fim = novoNo;
-    } else {
-        caixa->historicoClientes.fim->seguinte = novoNo;
-        caixa->historicoClientes.fim = novoNo;
-    }
-
-    caixa->historicoClientes.tamanho++;
 }
 // Associa e ativa um colaborador na caixa, tornando-o responsável pelo atendimento
 void ativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa) {
@@ -634,4 +634,23 @@ void desativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa) {
     }
 
     caixa->operador = colaborador;
+}
+// Conta quantas caixas estão atualmente operacionais,
+// considerando caixas abertas e caixas em encerramento.
+int contarCaixasOperacionais(const SISTEMA *sistema) {
+    int i;
+    int total = 0;
+
+    if (sistema == NULL || sistema->caixas == NULL) {
+        return 0;
+    }
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        if (sistema->caixas[i].estado == CAIXA_ABERTA ||
+            sistema->caixas[i].estado == CAIXA_EM_ENCERRAMENTO) {
+            total++;
+        }
+    }
+
+    return total;
 }

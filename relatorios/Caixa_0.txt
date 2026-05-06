@@ -3,10 +3,46 @@ Codigo do atendente: 4322
 Nome do atendente: Joana Manies Ferreira Bastos
 
 Pessoas atendidas:
-Nenhum cliente atendido.
+  735747 - Francisca Ferraz Calheiros
+  350993 - Boris Cardoso Nunes
+  944508 - Valdemar Mota Sequeira
+  677930 - Francisca Leao Paredes
+  83863 - Paulo Dias Soeiro
+  177952 - Francisca Estrela Vivas
+  264893 - Claudio Pires Amora
+  906034 - Clarice Andrade Almada
+  932649 - Catarina Nogueira Pinto
+  376825 - Carlota Dinis Lopes
+  355142 - Leonor Cunha Brito
+  584416 - Soraia Coelho Moreira
+  794393 - Basilio Fonseca Macedo
+  690095 - Eduarda Leao Pires
+  66528 - Ana Caneco Baptista
+  390800 - Claudio Leao Regueira
+  817665 - Carlota Sequeira Barbosa
+  186620 - Cristina Carneiro Almeida
+  131338 - Lucas Paredes Lobato
+  841163 - Bernardo Fonseca Rego
+  217634 - Alzinda Martins Caneco
+  114719 - Luis Castanheira Paredes
+  425215 - Leonor Barros Macedo
+  980684 - Celso Caiado Carrico
+  832747 - Maria Mota Seixas
+  313314 - Celina Brito Calheiros
+  889960 - Duarte Barros Ferraz
+  717907 - Dulce Leao Moura
+  250147 - Dulce Mateus Lobato
+  731861 - Ricardo Cipriano Regueira
+  825335 - Marisa Seixas Arantes
+  386825 - Bruno Baptista Leal
+  626513 - Carla Nogueira Rosado
+  42916 - Dolores Aguiar Farias
+  714341 - Carmo Nunes Almeida
+  722673 - Cristiana Martins Paredes
+  745319 - Daniel Paredes Ferraz
 
-Clientes atendidos: 0
-Produtos vendidos: 0
-Valor vendido: 0.00
+Clientes atendidos: 37
+Produtos vendidos: 551
+Valor vendido: 2195.64
 Produtos oferecidos: 0
 Valor oferecido: 0.00

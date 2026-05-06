@@ -34,6 +34,10 @@ Foi implementado um limite máximo de clientes no sistema através da constante 
 
 Cada cliente passa a possuir um conjunto de informações essenciais, como identificador, nome, lista de produtos, valor total da compra, tempos de entrada, tempo estimado de conclusão de compras e tempos associados ao atendimento e pagamento. O tempo total de permanência do cliente na loja é calculado com base no tempo de procura e pagamento de cada produto.
 
+No sistema, as estruturas que realmente armazenam os dados completos são principalmente as bases carregadas dos ficheiros (BASE_CLIENTES, BASE_PRODUTOS e BASE_COLABORADORES) que sao vetores dinamicamente alocados e as estruturas CLIENTE criadas dinamicamente durante a simulação. Estas estruturas contêm efetivamente os dados reais do sistema, como identificadores, nomes, estados, produtos, tempos e valores associados. Os clientes ativos são alocados dinamicamente na heap e passam a existir como entidades independentes em memória. As restantes estruturas do sistema, como a hash table de clientes, filas das caixas, lista de clientes em compras e históricos de atendimento, não armazenam cópias completas desses clientes, mantendo apenas ponteiros (CLIENTE*) para as estruturas já existentes. Esta abordagem segue um modelo de partilha de referências, amplamente utilizado em sistemas profissionais, permitindo reduzir duplicação de dados, minimizar consumo de memória, garantir consistência entre estruturas e simplificar a sincronização do estado global do sistema.
+
+No sistema desenvolvido, todas as estruturas CLIENTE criadas dinamicamente permanecem alocadas na heap durante toda a execução da simulação, independentemente do estado em que o cliente se encontra. Isso significa que clientes em compras, em fila, em atendimento e até mesmo clientes já atendidos continuam existentes em memória até ao encerramento ou reinicialização da simulação. As diferentes estruturas do sistema (hash table, filas das caixas, cliente em atendimento e históricos) armazenam apenas ponteiros (CLIENTE*) para essas entidades, transferindo as referências entre estruturas ao longo do fluxo da simulação, sem duplicação dos dados. Esta abordagem foi adotada para permitir a preservação completa do histórico de clientes atendidos, possibilitando geração de relatórios detalhados, cálculo de estatísticas globais, análise posterior da execução e rastreamento completo das entidades simuladas. Embora esta estratégia aumente o consumo de memória ao longo da execução, ela simplifica significativamente a gestão do ciclo de vida dos objetos, evita problemas de referências inválidas (dangling pointers) e garante consistência entre todas as estruturas que partilham os mesmos clientes em memória.
+
 Durante a execução da simulação foi implementado um mecanismo de controlo em tempo real através do teclado, permitindo ao utilizador pausar o sistema pressionando a tecla “P” durante o ciclo ativo. Este comportamento é detetado de forma assíncrona, sem interromper o fluxo principal da simulação, garantindo assim uma interação contínua com o utilizador e permitindo o acesso imediato ao menu de controlo durante a execução.
 
 Foi também implementado um indicador visual de execução (loading spinner), baseado numa sequência de caracteres rotativos, como |, /, - e . Este elemento é atualizado a cada ciclo da simulação e tem como objetivo fornecer feedback visual ao utilizador, demonstrando que o sistema se encontra em processamento ativo e reforçando a perceção de tempo real durante a execução do simulador.
@@ -60,7 +64,7 @@ O ciclo de simulação segue sempre a mesma ordem lógica: atualização dos cli
 
 As estatísticas do sistema incluem o número de clientes gerados, atendidos, produtos vendidos e oferecidos, valores totais, tempos médios de espera, número de mudanças de fila, aberturas e encerramentos automáticos, além de métricas por caixa. No final da simulação, é gerado um relatório completo com análise detalhada do desempenho do sistema, relatório que também pode ser consultado em tempo real durante a simulação.
 
-A memória utilizada pelo sistema é calculada separando memória efetivamente ocupada de memória desperdiçada. A memória desperdiçada corresponde a capacidade alocada mas não utilizada em estruturas dinâmicas, como arrays parcialmente preenchidos, buckets vazios e listas com capacidade ociosa, estas informações de memória também podem ser consultadas durante o funcionamento da simulação.
+A memória utilizada pelo sistema é calculada separando memória efetivamente ocupada de memória desperdiçada. A memória desperdiçada corresponde principalmente à capacidade alocada mas não utilizada nos arrays dinâmicos das bases e ao espaço reservado mas não preenchido nos arrays fixos de nomes., estas informações de memória também podem ser consultadas durante o funcionamento da simulação.
 
 No início da execução do sistema, são carregados os dados base dos ficheiros de clientes, produtos e colaboradores. Estes dados são utilizados para alimentar a simulação. A entrada de novos clientes pode ser feita automaticamente durante a simulação ou manualmente através do menu. Todas as ações realizadas no menu são registadas em um histórico de eventos, que é exportado para ficheiro CSV no encerramento da simulação.
 
@@ -131,253 +135,77 @@ As estatísticas do sistema são armazenadas numa estrutura agregadora que acumu
 Sistema principal – Estrutura composta
 O sistema principal é implementado como uma estrutura composta que agrega todas as restantes estruturas de dados, incluindo caixas, clientes ativos, listas de clientes em compras, estatísticas e configurações. Esta abordagem centraliza o estado global da simulação, facilitando a gestão e a comunicação entre os diferentes componentes. Ao concentrar toda a informação relevante numa única estrutura, o sistema torna-se mais organizado, modular e fácil de manter.
 
-
-
-
-
-void inicializarCaixa(CAIXA *caixa, int idCaixa);
-void inicializarCaixas(SISTEMA *sistema);
-CAIXA *obterCaixaPorId(SISTEMA *sistema, int idCaixa);
-CAIXA *obterPrimeiraCaixaAberta(SISTEMA *sistema);
-CAIXA *obterCaixaComMenorTempoEstimado(SISTEMA *sistema);
-int contarCaixasAbertas(SISTEMA *sistema);
-int contarCaixasEmEncerramento(SISTEMA *sistema);
-int caixaEstaAberta(CAIXA *caixa);
-int caixaEstaFechada(CAIXA *caixa);
-int caixaEstaEmEncerramento(CAIXA *caixa);
-int caixaAceitaNovosClientes(CAIXA *caixa);
-int caixaTemClientes(CAIXA *caixa);
-int abrirCaixa(SISTEMA *sistema, int idCaixa, int controloManual);
-int encerrarCaixa(SISTEMA *sistema, int idCaixa, int controloManual);
-int fecharCaixa(SISTEMA *sistema, int idCaixa, int controloManual);
-int colocarCaixaEmAuto(SISTEMA *sistema, int idCaixa);
-int encaminharClienteParaMelhorCaixa(SISTEMA *sistema, CLIENTE *cliente);
-int adicionarClienteNaCaixa(CAIXA *caixa, CLIENTE *cliente, int instanteAtual);
-int redistribuirClientesCaixaFechada(SISTEMA *sistema, int idCaixa);
-int iniciarAtendimentoSeNecessario(SISTEMA *sistema, CAIXA *caixa);
-int finalizarAtendimentoSeConcluido(SISTEMA *sistema, CAIXA *caixa);
-int calcularTempoRestanteClienteAtual(CAIXA *caixa);
-int calcularTempoEstimadoCaixa(CAIXA *caixa);
-int obterNumeroClientesCaixa(CAIXA *caixa);
-void atualizarTempoEstimadoCaixa(CAIXA *caixa);
-void adicionarClienteAoHistoricoCaixa(CAIXA *caixa, CLIENTE *cliente);
-void ativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa);
-void desativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa);
-
-CLIENTE *criarCliente(SISTEMA *sistema);
-void inicializarCliente(CLIENTE *cliente, SISTEMA *sistema);
-int gerarNovosClientes(SISTEMA *sistema);
-CLIENTE *gerarClienteAleatorio(SISTEMA *sistema);
-void gerarProdutosCliente(CLIENTE *cliente, SISTEMA *sistema);
-void ordenarProdutosClientePorPreco(CLIENTE *cliente);
-int calcularTempoTotalComprasCliente(CLIENTE *cliente);
-int calcularTempoTotalPagamentoCliente(CLIENTE *cliente);
-float calcularValorTotalComprasCliente(CLIENTE *cliente);
-void atualizarEstadoCliente(CLIENTE *cliente, ESTADO_CLIENTE novoEstado);
-int clienteEstaEmAtendimento(CLIENTE *cliente);
-void registarEntradaFilaCliente(CLIENTE *cliente, int instanteAtual);
-int calcularTempoEsperaCliente(CLIENTE *cliente, int instanteAtual);
-void iniciarAtendimentoCliente(CLIENTE *cliente, int instanteAtual);
-void atualizarTempoAtendimentoCliente(CLIENTE *cliente);
-int clienteTerminouAtendimento(CLIENTE *cliente);
-void finalizarAtendimentoCliente(CLIENTE *cliente, int instanteAtual);
-int clienteRecebeuOferta(CLIENTE *cliente);
-int clienteTemDireitoAOferta(SISTEMA *sistema, CLIENTE *cliente, int instanteAtual);
-void aplicarOfertaCliente(CLIENTE *cliente);
-int clienteJaMudouDeFila(CLIENTE *cliente);
-void marcarClienteMudouDeFila(CLIENTE *cliente);
-void libertarCliente(CLIENTE *cliente);
-void limparCamposCliente(CLIENTE *cliente);
-int obterQuantidadeProdutosCliente(SISTEMA *sistema);
-int obterQuantidadeNovosClientesNoCiclo(SISTEMA *sistema);
-void calcularCamposDerivadosCliente(CLIENTE *cliente);
-int obterIndiceProdutoMaisBarato(CLIENTE *cliente);
-int gerarProximoIdClienteBase(BASE_CLIENTES *base);
-int contarClientesNasCaixas(SISTEMA *sistema);
-int contarClientesSistema(SISTEMA *sistema);
-
-COLABORADOR *obterColaboradorPorId(SISTEMA *sistema, int id);
-COLABORADOR *obterColaboradorPorCaixa(SISTEMA *sistema, int idCaixa);
-void associarColaboradoresAsCaixas(SISTEMA *sistema);
-void ativarColaborador(COLABORADOR *colaborador, int idCaixa);
-void desativarColaborador(COLABORADOR *colaborador);
-void incrementarClientesAtendidosColaborador(COLABORADOR *colaborador);
-
-int carregarConfiguracao(CONFIGURACAO *config, char *nomeFicheiro);
-int validarConfiguracao(CONFIGURACAO *config);
-void aplicarValoresDefault(CONFIGURACAO *config);
-int lerParConfiguracao(FILE *ficheiro, char *chave, char *valor);
-void aplicarValorConfiguracao(CONFIGURACAO *config, char *chave, char *valor);
-
-void inicializarEstatisticas(ESTATISTICAS *estatisticas);
-void registarClienteGerado(ESTATISTICAS *estatisticas);
-void registarClienteAtendido(ESTATISTICAS *estatisticas);
-void registarProdutoVendido(ESTATISTICAS *estatisticas, int quantidade, float valor);
-void registarProdutoOferecido(ESTATISTICAS *estatisticas, float valor);
-void registarMudancaFila(ESTATISTICAS *estatisticas);
-void registarAberturaAutomatica(ESTATISTICAS *estatisticas);
-void registarEncerramentoAutomatico(ESTATISTICAS *estatisticas);
-void atualizarTempoEspera(ESTATISTICAS *estatisticas, int tempoEspera);
-void calcularTempoMedioEspera(ESTATISTICAS *estatisticas);
-void atualizarEstatisticasCaixas(SISTEMA *sistema);
-void determinarOperadorMenosAtendimentos(SISTEMA *sistema);
-void determinarOperadorMaisAtendimentos(SISTEMA *sistema);
-void atualizarMelhorCaixaClientes(SISTEMA *sistema);
-void atualizarMelhorCaixaProdutos(SISTEMA *sistema);
-
-int carregarBaseClientes(BASE_CLIENTES *base, char *nomeFicheiro);
-int carregarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro);
-int carregarBaseColaboradores(BASE_COLABORADORES *base, char *nomeFicheiro);
-int guardarBaseClientes(BASE_CLIENTES *base, char *nomeFicheiro);
-int guardarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro);
-int escreverHistoricoCSV(LISTA_LOGS *logs, char *nomeFicheiro);
-int escreverRelatorioEstatisticas(SISTEMA *sistema, char *nomeFicheiro);
-int escreverRelatorioCaixa(CAIXA *caixa, char *nomeFicheiro);
-void escreverRelatoriosTodasCaixas(SISTEMA *sistema);
-int garantirCapacidadeClientes(BASE_CLIENTES *base);
-int garantirCapacidadeProdutos(BASE_PRODUTOS *base);
-int garantirCapacidadeColaboradores(BASE_COLABORADORES *base);
-void limparPastaRelatorios(void);
-
-void inicializarFila(FILA *fila);
-int filaEstaVazia(FILA *fila);
-int obterTamanhoFila(FILA *fila);
-int enfileirarCliente(FILA *fila, CLIENTE *cliente);
-CLIENTE *desenfileirarCliente(FILA *fila);
-int removerClienteDaFilaPorId(FILA *fila, int idCliente);
-void libertarFila(FILA *fila);
-ELEMENTO *criarElementoFila(CLIENTE *cliente);
-
-void inicializarHash(HASHTABLE *tabela, int nBuckets);
-int funcaoHash(int chave, int nBuckets);
-BUCKET *obterBucket(HASHTABLE *tabela, int indice);
-int inserirClienteHash(HASHTABLE *tabela, CLIENTE *cliente);
-CLIENTE *procurarClienteHash(HASHTABLE *tabela, int chave);
-int removerClienteHash(HASHTABLE *tabela, int chave);
-int clienteExisteHash(HASHTABLE *tabela, int chave);
-void libertarHash(HASHTABLE *tabela);
-BUCKET *criarBucket(int indice);
-HASHNODE *criarHashNode(CLIENTE *cliente);
-BUCKET *procurarBucket(BUCKET *inicio, int indice);
-void libertarListaClientesBucket(HASHNODE *no);
-
-void inicializarListaLogs(LISTA_LOGS *logs);
-void adicionarLog(LISTA_LOGS *logs, int instante, char *acao, char *descricao);
-void limparListaLogs(LISTA_LOGS *logs);
-void libertarListaLogs(LISTA_LOGS *logs);
-NO_LOG_ACAO *criarNoLog(int instante, char *acao, char *descricao);
-
-void inicializarListaClientesComprando(LISTA_CLIENTES_COMPRANDO *lista);
-int listaComprasEstaVazia(LISTA_CLIENTES_COMPRANDO *lista);
-int inserirClienteOrdenadoListaCompras(LISTA_CLIENTES_COMPRANDO *lista, CLIENTE *cliente);
-CLIENTE *obterPrimeiroClienteListaCompras(LISTA_CLIENTES_COMPRANDO *lista);
-CLIENTE *removerPrimeiroClienteListaCompras(LISTA_CLIENTES_COMPRANDO *lista);
-void atualizarClientesEmCompras(LISTA_CLIENTES_COMPRANDO *lista, int instanteAtual);
-int clienteTerminouComprasLista(CLIENTE *cliente, int instanteAtual);
-void libertarListaClientesComprando(LISTA_CLIENTES_COMPRANDO *lista);
-NO_CLIENTE_COMPRANDO *criarNoClienteComprando(CLIENTE *cliente);
-
-void inicializarSistemaBase(SISTEMA *sistema);
-int carregarDadosIniciais(SISTEMA *sistema);
-void executarLoopPrincipal(SISTEMA *sistema);
-void finalizarSistema(SISTEMA *sistema);
-void libertarEstruturasDinamicas(SISTEMA *sistema);
-void libertarClientesAtivosHash(SISTEMA *sistema);
-void libertarClientesHistoricoCaixas(SISTEMA *sistema);
-void libertarBases(SISTEMA *sistema);
-void gerarSaidasFinais(SISTEMA *sistema);
-
-size_t calcularMemoriaCliente(CLIENTE *cliente);
-size_t calcularMemoriaFila(FILA *fila);
-size_t calcularMemoriaHash(HASHTABLE *tabela);
-size_t calcularMemoriaListaCompras(LISTA_CLIENTES_COMPRANDO *lista);
-size_t calcularMemoriaLogs(LISTA_LOGS *logs);
-size_t calcularMemoriaSistema(SISTEMA *sistema);
-size_t calcularMemoriaDesperdicadaSistema(SISTEMA *sistema);
-void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro);
-size_t calcularMemoriaHistoricoClientesCaixa(HISTORICO_CLIENTES_CAIXA *historico);
-size_t calcularMemoriaBases(SISTEMA *sistema);
-size_t calcularMemoriaDesperdicadaBases(SISTEMA *sistema);
-
-void mostrarMenuPrincipal();
-int lerOpcaoMenu(int min, int max);
-void executarOpcaoMenu(SISTEMA *sistema, int opcao);
-void mostrarMenuGestao();
-void adicionarClienteBaseMenu(SISTEMA *sistema);
-void adicionarProdutoBaseMenu(SISTEMA *sistema);
-void abrirCaixaManual(SISTEMA *sistema);
-void fecharCaixaManual(SISTEMA *sistema);
-void mostrarCabecalho(char *titulo);
-void mostrarEstadoResumidoSistema(SISTEMA *sistema);
-void executarMenuGestao(SISTEMA *sistema);
-void alterarVelocidadeSimulacao(SISTEMA *sistema);
-char *obterTextoVelocidade(int velocidade);
-void pesquisarClienteAtivoMenu(SISTEMA *sistema);
-void listarTodosClientesMenu(SISTEMA *sistema);
-void mostrarEstatisticasSimulacaoMenu(SISTEMA *sistema);
-void mostrarRelatorioMemoriaMenu(SISTEMA *sistema);
-int colocarCaixaEmAutoUI(SISTEMA *sistema);
-
-PRODUTO *gerarProdutoAleatorio(BASE_PRODUTOS *base);
-void ordenarProdutosPorPreco(PRODUTO *produtos, int quantidade);
-int calcularTempoTotalProdutos(PRODUTO *produtos, int quantidade);
-float calcularValorTotalProdutos(PRODUTO *produtos, int quantidade);
-void trocarProdutos(PRODUTO *a, PRODUTO *b);
-int gerarProximoIdProdutoBase(BASE_PRODUTOS *base);
-
-void inicializarSimulacao(SISTEMA *sistema);
-void executarSimulacao(SISTEMA *sistema);
-void cicloSimulacao(SISTEMA *sistema);
-void atualizarClientesEmComprasSimulacao(SISTEMA *sistema);
-void moverClientesParaFilas(SISTEMA *sistema);
-void atualizarCaixasSimulacao(SISTEMA *sistema);
-void finalizarAtendimentosSimulacao(SISTEMA *sistema);
-void iniciarNovosAtendimentosSimulacao(SISTEMA *sistema);
-void aplicarOfertasSimulacao(SISTEMA *sistema);
-void avaliarMudancasFilaSimulacao(SISTEMA *sistema);
-void verificarAberturaCaixasSimulacao(SISTEMA *sistema);
-void verificarEncerramentoCaixasSimulacao(SISTEMA *sistema);
-void gerarNovosClientesSimulacao(SISTEMA *sistema);
-void atualizarEstatisticasSimulacao(SISTEMA *sistema);
-void pausarSimulacao(SISTEMA *sistema);
-void retomarSimulacao(SISTEMA *sistema);
-void encerrarSimulacao(SISTEMA *sistema);
-void processarClientesTerminadosEmCompras(SISTEMA *sistema);
-CAIXA *obterCaixaDestinoMudanca(SISTEMA *sistema, CAIXA *caixaAtual);
-CLIENTE *obterClienteNaPosicaoFila(FILA *fila, int posicao);
-int tentarMoverClienteDeFila(SISTEMA *sistema, CAIXA *caixaOrigem, CLIENTE *cliente);
-CAIXA *obterCaixaParaAberturaAutomatica(SISTEMA *sistema);
-CAIXA *obterCaixaParaEncerramentoAutomatico(SISTEMA *sistema);
-void mostrarPainelSimulacao(SISTEMA *sistema);
-void processarTeclaSimulacao(SISTEMA *sistema);
-char obterCharLoading(int passo);
-int obterDelayPorVelocidade(int velocidade);
-char *obterTextoControloCaixa(CAIXA *caixa);
-void reinicializarEstadoSimulacao(SISTEMA *sistema);
-
-void limparBufferEntrada(void);
-void lerString(char *mensagem, char *destino, int tamanho);
-void lerFloat(char *mensagem, float *destino, float min, float max);
-void lerInteiro(char *mensagem, int *destino, int min, int max);
-void limparTela();
-void pausarTela();
-void gerarTimestampFormatado(char *buffer, int tamanho);
-void copiarStringSeguro(char *destino, char *origem, int tamanho);
-void gerarNomeFicheiroComTimestamp(char *destino, int tamanho, char *prefixo, char *extensao);
-void configurarAmbienteUTF8();
-int Aleatorio(int min, int max);
-
+adicionar explicitamente o uso de _kbhit e _getchar
+foi usado em todos as estruturas o formato CLIENTE e CLIENTES*, nao o PTCLIENTE previamente definido
 
 A simulação funciona com um ciclo principal (while) que executa continuamente enquanto o estado for ativo. Cada iteração desse ciclo representa um minuto virtual e chama a função cicloSimulacao, onde todos os eventos do sistema são processados. O tempo da simulação é independente do tempo real, sendo controlado por incrementos no tempoAtual. A velocidade da simulação é ajustada através de um Sleep, que define o intervalo real entre ciclos. Já a atualização da interface é feita de forma periódica, usando um contador de ciclos, apenas para otimizar a performance.
 A simulação é independente do tempo real do computador.
 
+O sistema foi desenvolvido com uma arquitetura baseada em partilha de referências, onde os dados principais existem apenas uma vez em memória e as restantes estruturas trabalham maioritariamente através de ponteiros para esses dados. Esta abordagem evita duplicação de informação, reduz o consumo de memória e garante consistência entre todas as estruturas do sistema.
 
-separaçao em mais 3 menus
-organizar estatisticas
-por label no status
-adicionar explicitamente o uso de _kbhit e _getchar
-foi usado em todos as estruturas o formato CLIENTE e CLIENTES*, nao o PTCLIENTE previamente definido
+As bases de clientes, produtos e colaboradores são as estruturas responsáveis pelo armazenamento efetivo dos dados carregados dos ficheiros. Estas bases utilizam arrays dinâmicos em memória contínua, contendo diretamente os structs completos (CLIENTE_BASE, PRODUTO e COLABORADOR). Dessa forma, estas estruturas funcionam como repositórios principais de dados do sistema, permitindo acesso rápido por índice e elevada eficiência em leitura sequencial.
 
+Durante a simulação, os clientes ativos são geridos através de uma hash table com encadeamento. A hash armazena nós que apontam para estruturas CLIENTE existentes em memória, funcionando como mecanismo principal de gestão e pesquisa dos clientes atualmente presentes no sistema. Esta abordagem permite operações rápidas de inserção, remoção e pesquisa por identificador único, mantendo complexidade média próxima de O(1).
 
-listar cliente so a comprar 
-listar que esta a lerParConfiguracao
+As restantes estruturas do sistema, como as filas das caixas, a lista de clientes em compras, os históricos de atendimento e o cliente atualmente em atendimento em cada caixa, não armazenam cópias completas dos clientes. Estas estruturas mantêm apenas ponteiros (CLIENTE*) para clientes já existentes na memória. Assim, um mesmo cliente pode simultaneamente estar referenciado na hash table, numa fila de caixa e noutras estruturas auxiliares sem necessidade de duplicação de dados.
+
+Esta arquitetura permite que qualquer alteração efetuada num cliente seja imediatamente refletida em todas as estruturas que o referenciam, garantindo coerência global do sistema. Além disso, reduz significativamente o consumo de memória e o custo de cópia de estruturas grandes, tornando o sistema mais eficiente, modular e próximo das abordagens utilizadas em sistemas reais de gestão e simulação.
+
+Inicialmente, os arrays dinâmicos das bases utilizavam crescimento exponencial por duplicação da capacidade, estratégia que reduz o número de realocações de memória, mas que gerava elevado desperdício de espaço não utilizado. Após análise dos relatórios de memória do sistema, a estratégia foi alterada para crescimento incremental fixo, reduzindo significativamente a quantidade de memória reservada sem utilização efetiva.
+
+Foram realizados testes comparativos entre diferentes estratégias de crescimento dinâmico através de realloc:
+
+Multiplicando por 2:
+Memória total:        3 213 848 bytes
+Desperdício bases:    1 197 320 bytes
+
+Somando +200:
+Memória total:        1 910 320 bytes
+Desperdício bases:       10 248 bytes
+
+Somando +100:
+Memória total:        1 812 336 bytes
+Desperdício bases:        4 648 bytes
+
+A estratégia incremental fixa de +100 posições apresentou os melhores resultados para este cenário, permitindo reduzir o desperdício estimado das bases dinâmicas em aproximadamente 99,6% e diminuir o consumo total de memória em cerca de 44%, mantendo simultaneamente um desempenho adequado nas operações de inserção e expansão dinâmica.
+
+RELATORIO DE MEMORIA (ESTIMATIVO)
+================================
+
+Nota: os valores apresentados correspondem a uma estimativa baseada nas estruturas
+de dados dinamicas geridas pelo programa, nao incluindo overhead interno do malloc,
+fragmentacao de memoria ou consumo adicional do runtime.
+
+# Quantidade total aproximada de memória ocupada pelas estruturas do sistema.
+Memoria total estimada das estruturas do sistema: 1973648 bytes
+
+# Memória reservada mas ainda não utilizada nos vetores dinâmicos.
+Memoria desperdicada estimada nas bases dinamicas: 4648 bytes
+
+# Espaço não utilizado dentro dos arrays fixos reservados para nomes.
+# praticamente devido ao tamanho do espaço de nomes de produtos, onde existem nomes muito grandes
+# sendo necessário a reserva de 120 caracteres.
+Memoria desperdicada estimada nos Nomes nas bases dinamicas: 891299 bytes
+
+Detalhe por estrutura:
+
+# Memória utilizada pelas bases de clientes, produtos e colaboradores carregadas.
+  Bases carregadas: 1763664 bytes
+
+# Memória utilizada pelo vetor de caixas e pelos históricos de clientes atendidos.
+  Caixas (vetor + historicos): 1728 bytes
+
+# Memória utilizada pelas filas encadeadas das caixas.
+  Filas: 32 bytes
+
+# Memória utilizada pela hash table de clientes ativos.
+  Hash de clientes: 2752 bytes
+
+# Memória utilizada pela lista ligada de clientes em compras.
+  Lista de compras: 728 bytes
+
+# Memória utilizada pelos logs do sistema.
+  Logs: 976 bytes
+
+# Memória utilizada pelos clientes ativos e pelos seus produtos associados.
+  Clientes ativos e produtos associados: 203584 bytes

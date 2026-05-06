@@ -10,7 +10,7 @@
 
 typedef struct Produto {
     int id;
-    char nome[MAX_NOME];
+    char nome[MAX_NOME_PRODUTO];
     float preco;
     int tempoDeProcura;
     int tempoDePagamento;
@@ -139,19 +139,18 @@ typedef struct HashNode {
 typedef struct Bucket {
     int indice;
     HASHNODE *clientes;
-    struct Bucket *prox;
 } BUCKET;
 
 typedef struct HashTable {
-    BUCKET *inicio;
+    BUCKET buckets[HASH_N_BUCKETS];
     int nBuckets;
     int nElementos;
 } HASHTABLE;
 
 typedef struct LogAcao {
     int instante;
-    char acao[100];
-    char descricao[256];
+    char acao[MAX_NOME_ACAO_LOG];
+    char descricao[MAX_NOME_DESCRICAO_LOG];
 } LOG_ACAO;
 
 typedef struct NoClienteComprando {

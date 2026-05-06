@@ -34,5 +34,6 @@ void atualizarTempoEstimadoCaixa(CAIXA *caixa);
 void adicionarClienteAoHistoricoCaixa(CAIXA *caixa, CLIENTE *cliente);
 void ativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa);
 void desativarOperadorDaCaixa(SISTEMA *sistema, int idCaixa);
+int contarCaixasOperacionais(const SISTEMA *sistema) ;
 
 #endif

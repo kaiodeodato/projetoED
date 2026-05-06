@@ -3,10 +3,22 @@ Codigo do atendente: 3044
 Nome do atendente: Patricia Cabral Henriques Bras
 
 Pessoas atendidas:
-Nenhum cliente atendido.
+  590775 - Marisa Brito Mendes
+  60738 - Leonor Valbom Aguiar
+  281435 - Leonor Pacheco Estrela
+  369117 - Claudio Macedo Antunes
+  55106 - Catarina Quadros Almada
+  698072 - Bernardo Baptista Vivas
+  773112 - Duarte Ferreira Almada
+  157425 - David Amora Azevedo
+  404197 - Daniel Moreno Bacelar
+  432144 - Cristina Carreira Clementino
+  291007 - Celina Coelho Almeida
+  110765 - Soraia Nogueira Barbosa
+  182725 - Carina Almada Caneco
 
-Clientes atendidos: 0
-Produtos vendidos: 0
-Valor vendido: 0.00
+Clientes atendidos: 13
+Produtos vendidos: 286
+Valor vendido: 1235.69
 Produtos oferecidos: 0
 Valor oferecido: 0.00

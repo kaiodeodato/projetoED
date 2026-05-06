@@ -5,36 +5,17 @@
 // Inicializa a tabela hash criando a lista de buckets com o número especificado
 void inicializarHash(HASHTABLE *tabela, int nBuckets) {
     int i;
-    BUCKET *ultimo = NULL;
 
     if (tabela == NULL) {
         return;
     }
 
-    tabela->inicio = NULL;
-    tabela->nBuckets = 0;
+    tabela->nBuckets = HASH_N_BUCKETS;
     tabela->nElementos = 0;
 
-    if (nBuckets <= 0) {
-        return;
-    }
-
-    for (i = 0; i < nBuckets; i++) {
-        BUCKET *novoBucket = criarBucket(i);
-
-        if (novoBucket == NULL) {
-            libertarHash(tabela);
-            return;
-        }
-
-        if (tabela->inicio == NULL) {
-            tabela->inicio = novoBucket;
-        } else {
-            ultimo->prox = novoBucket;
-        }
-
-        ultimo = novoBucket;
-        tabela->nBuckets++;
+    for (i = 0; i < tabela->nBuckets; i++) {
+        tabela->buckets[i].indice = i;
+        tabela->buckets[i].clientes = NULL;
     }
 }
 // Calcula o índice do bucket na tabela hash a partir da chave, garantindo valor não negativo
@@ -55,7 +36,7 @@ BUCKET *obterBucket(HASHTABLE *tabela, int indice) {
         return NULL;
     }
 
-    return procurarBucket(tabela->inicio, indice);
+    return &tabela->buckets[indice];
 }
 // Insere um cliente na tabela hash, evitando duplicados e adicionando-o ao bucket correspondente
 int inserirClienteHash(HASHTABLE *tabela, CLIENTE *cliente) {
@@ -91,7 +72,6 @@ int inserirClienteHash(HASHTABLE *tabela, CLIENTE *cliente) {
 // Procura e retorna um cliente na tabela hash com base na chave (id), ou NULL se não existir
 CLIENTE *procurarClienteHash(HASHTABLE *tabela, int chave) {
     int indice;
-    BUCKET *bucket;
     HASHNODE *atual;
 
     if (tabela == NULL || tabela->nBuckets <= 0) {
@@ -99,12 +79,8 @@ CLIENTE *procurarClienteHash(HASHTABLE *tabela, int chave) {
     }
 
     indice = funcaoHash(chave, tabela->nBuckets);
-    bucket = procurarBucket(tabela->inicio, indice);
-    if (bucket == NULL) {
-        return NULL;
-    }
+    atual = tabela->buckets[indice].clientes;
 
-    atual = bucket->clientes;
     while (atual != NULL) {
         if (atual->chave == chave) {
             return atual->cliente;
@@ -160,39 +136,19 @@ int clienteExisteHash(HASHTABLE *tabela, int chave) {
 }
 // Liberta toda a memória da tabela hash, incluindo buckets e listas de clientes
 void libertarHash(HASHTABLE *tabela) {
-    BUCKET *atual;
-    BUCKET *seguinte;
+    int i;
 
     if (tabela == NULL) {
         return;
     }
 
-    atual = tabela->inicio;
-
-    while (atual != NULL) {
-        seguinte = atual->prox;
-        libertarListaClientesBucket(atual->clientes);
-        free(atual);
-        atual = seguinte;
+    for (i = 0; i < tabela->nBuckets; i++) {
+        libertarListaClientesBucket(tabela->buckets[i].clientes);
+        tabela->buckets[i].clientes = NULL;
     }
 
-    tabela->inicio = NULL;
     tabela->nBuckets = 0;
     tabela->nElementos = 0;
-}
-// Cria e inicializa um novo bucket da tabela hash com o índice indicado
-BUCKET *criarBucket(int indice) {
-    BUCKET *bucket = (BUCKET *)malloc(sizeof(BUCKET));
-
-    if (bucket == NULL) {
-        return NULL;
-    }
-
-    bucket->indice = indice;
-    bucket->clientes = NULL;
-    bucket->prox = NULL;
-
-    return bucket;
 }
 // Cria e inicializa um novo nó da tabela hash associado a um cliente
 HASHNODE *criarHashNode(CLIENTE *cliente) {
@@ -212,20 +168,6 @@ HASHNODE *criarHashNode(CLIENTE *cliente) {
     novoNo->prox = NULL;
 
     return novoNo;
-}
-// Procura e retorna o bucket com o índice indicado na lista de buckets
-BUCKET *procurarBucket(BUCKET *inicio, int indice) {
-    BUCKET *atual = inicio;
-
-    while (atual != NULL) {
-        if (atual->indice == indice) {
-            return atual;
-        }
-
-        atual = atual->prox;
-    }
-
-    return NULL;
 }
 // Liberta a memória de todos os nós da lista de clientes de um bucket
 void libertarListaClientesBucket(HASHNODE *no) {

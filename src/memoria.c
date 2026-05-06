@@ -40,7 +40,7 @@ size_t calcularMemoriaFila(FILA *fila) {
 // Calcula a memória ocupada pela tabela hash, incluindo buckets e nós de clientes
 size_t calcularMemoriaHash(HASHTABLE *tabela) {
     size_t memoria = 0;
-    BUCKET *bucketAtual;
+    int i;
 
     if (tabela == NULL) {
         return 0;
@@ -48,18 +48,13 @@ size_t calcularMemoriaHash(HASHTABLE *tabela) {
 
     memoria += sizeof(HASHTABLE);
 
-    bucketAtual = tabela->inicio;
-    while (bucketAtual != NULL) {
-        HASHNODE *noAtual = bucketAtual->clientes;
-
-        memoria += sizeof(BUCKET);
+    for (i = 0; i < tabela->nBuckets; i++) {
+        HASHNODE *noAtual = tabela->buckets[i].clientes;
 
         while (noAtual != NULL) {
             memoria += sizeof(HASHNODE);
             noAtual = noAtual->prox;
         }
-
-        bucketAtual = bucketAtual->prox;
     }
 
     return memoria;
@@ -106,7 +101,6 @@ size_t calcularMemoriaLogs(LISTA_LOGS *logs) {
 size_t calcularMemoriaSistema(SISTEMA *sistema) {
     size_t memoria = 0;
     int i;
-    BUCKET *bucketAtual;
 
     if (sistema == NULL) {
         return 0;
@@ -128,9 +122,8 @@ size_t calcularMemoriaSistema(SISTEMA *sistema) {
     memoria += calcularMemoriaListaCompras(&sistema->clientesComprando) - sizeof(LISTA_CLIENTES_COMPRANDO);
     memoria += calcularMemoriaLogs(&sistema->logs) - sizeof(LISTA_LOGS);
 
-    bucketAtual = sistema->clientesHash.inicio;
-    while (bucketAtual != NULL) {
-        HASHNODE *noAtual = bucketAtual->clientes;
+    for (i = 0; i < sistema->clientesHash.nBuckets; i++) {
+        HASHNODE *noAtual = sistema->clientesHash.buckets[i].clientes;
 
         while (noAtual != NULL) {
             if (noAtual->cliente != NULL) {
@@ -139,8 +132,6 @@ size_t calcularMemoriaSistema(SISTEMA *sistema) {
 
             noAtual = noAtual->prox;
         }
-
-        bucketAtual = bucketAtual->prox;
     }
 
     return memoria;
@@ -164,8 +155,8 @@ void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro) {
     size_t memoriaCaixas = 0;
     size_t memoriaTotal;
     size_t memoriaDesperdicada;
+    size_t memoriaDesperdicadaNomes;
     int i;
-    BUCKET *bucketAtual;
 
     if (sistema == NULL || nomeFicheiro == NULL) {
         return;
@@ -176,9 +167,8 @@ void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro) {
         return;
     }
 
-    bucketAtual = sistema->clientesHash.inicio;
-    while (bucketAtual != NULL) {
-        HASHNODE *noAtual = bucketAtual->clientes;
+   for (i = 0; i < sistema->clientesHash.nBuckets; i++) {
+        HASHNODE *noAtual = sistema->clientesHash.buckets[i].clientes;
 
         while (noAtual != NULL) {
             if (noAtual->cliente != NULL) {
@@ -187,9 +177,8 @@ void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro) {
 
             noAtual = noAtual->prox;
         }
-
-        bucketAtual = bucketAtual->prox;
     }
+    
 
     if (sistema->caixas != NULL) {
         for (i = 0; i < sistema->config.N_CAIXAS; i++) {
@@ -204,6 +193,7 @@ void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro) {
     memoriaLogs = calcularMemoriaLogs(&sistema->logs);
     memoriaTotal = calcularMemoriaSistema(sistema);
     memoriaDesperdicada = calcularMemoriaDesperdicadaSistema(sistema);
+    memoriaDesperdicadaNomes = calcularMemoriaDesperdicadaNomes(sistema);
 
     fprintf(ficheiro, "RELATORIO DE MEMORIA (ESTIMATIVO)\n");
     fprintf(ficheiro, "================================\n\n");
@@ -216,7 +206,8 @@ void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro) {
     );
 
     fprintf(ficheiro, "Memoria total estimada das estruturas do sistema: %zu bytes\n", memoriaTotal);
-    fprintf(ficheiro, "Memoria desperdicada estimada nas bases dinamicas: %zu bytes\n\n", memoriaDesperdicada);
+    fprintf(ficheiro, "Memoria desperdicada estimada nas bases dinamicas: %zu bytes\n", memoriaDesperdicada);
+    fprintf(ficheiro, "Memoria desperdicada estimada nos Nomes nas bases dinamicas: %zu bytes\n\n", memoriaDesperdicadaNomes);
 
     fprintf(ficheiro, "Detalhe por estrutura:\n");
     fprintf(ficheiro, "  Bases carregadas: %zu bytes\n", calcularMemoriaBases(sistema));
@@ -225,7 +216,7 @@ void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro) {
     fprintf(ficheiro, "  Hash de clientes: %zu bytes\n", memoriaHash);
     fprintf(ficheiro, "  Lista de compras: %zu bytes\n", memoriaListaCompras);
     fprintf(ficheiro, "  Logs: %zu bytes\n", memoriaLogs);
-    fprintf(ficheiro, "  Clientes ativos e produtos associados: %zu bytes\n", memoriaClientesAtivos);
+    fprintf(ficheiro, "  Clientes da simulação e produtos associados: %zu bytes\n", memoriaClientesAtivos);
 
     fclose(ficheiro);
 }
@@ -296,6 +287,34 @@ size_t calcularMemoriaDesperdicadaBases(SISTEMA *sistema) {
     elementosNaoUsados = sistema->baseColaboradores.capacidade - sistema->baseColaboradores.tamanho;
     if (elementosNaoUsados > 0) {
         memoria += sizeof(COLABORADOR) * elementosNaoUsados;
+    }
+
+    return memoria;
+}
+// Calcula a memória desperdiçada nos arrays fixos de nomes,
+// considerando o espaço reservado mas não utilizado pelas strings.
+size_t calcularMemoriaDesperdicadaNomes(SISTEMA *sistema) {
+    size_t memoria = 0;
+    int i;
+    size_t usados;
+
+    if (sistema == NULL) {
+        return 0;
+    }
+
+    for (i = 0; i < sistema->baseClientes.tamanho; i++) {
+        usados = strlen(sistema->baseClientes.dados[i].nome) + 1;
+        memoria += MAX_NOME - usados;
+    }
+
+    for (i = 0; i < sistema->baseProdutos.tamanho; i++) {
+        usados = strlen(sistema->baseProdutos.dados[i].nome) + 1;
+        memoria += MAX_NOME_PRODUTO - usados;
+    }
+
+    for (i = 0; i < sistema->baseColaboradores.tamanho; i++) {
+        usados = strlen(sistema->baseColaboradores.dados[i].nome) + 1;
+        memoria += MAX_NOME - usados;
     }
 
     return memoria;

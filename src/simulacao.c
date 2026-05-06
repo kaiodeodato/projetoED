@@ -29,6 +29,8 @@ void inicializarSimulacao(SISTEMA *sistema) {
 }
 // Executa o ciclo principal da simulação, processando eventos, atualizando a interface e controlando pausa e velocidade
 // estrutura principal de execução da simulação.
+// A função executarSimulacao separa a lógica da simulação da renderização da interface.
+// A lógica é executada a cada ciclo, mas a interface só é atualizada a cada 60 ciclos.
 void executarSimulacao(SISTEMA *sistema) {
     int passoLoading = 0;
     int estavaPausada;
@@ -73,11 +75,14 @@ void executarSimulacao(SISTEMA *sistema) {
         }
 
         processarTeclaSimulacao(sistema);
+        //A velocidade da simulação não altera a lógica nem o tempo simulado, apenas o tempo real de execução, sendo controlada através do delay (Sleep) entre ciclos.
         Sleep(obterDelayPorVelocidade(sistema->velocidadeSimulacao));
     }
 }
 // Executa um ciclo da simulação, atualizando clientes, caixas, eventos e avançando o tempo do sistema
 // coração da simulação
+// A simulação é baseada em ciclos discretos de tempo.
+// Cada execução da função cicloSimulacao representa 1 minuto de tempo simulado.
 void cicloSimulacao(SISTEMA *sistema) {
     if (sistema == NULL) {
         return;
@@ -265,6 +270,9 @@ void verificarAberturaCaixasSimulacao(SISTEMA *sistema) {
 // Verifica condições para encerramento automático de caixas e encerra uma caixa se aplicável
 void verificarEncerramentoCaixasSimulacao(SISTEMA *sistema) {
     CAIXA *caixa;
+    int clientesNasCaixas;
+    int caixasOperacionais;
+    float mediaClientesPorCaixa;
 
     if (sistema == NULL) {
         return;
@@ -274,12 +282,25 @@ void verificarEncerramentoCaixasSimulacao(SISTEMA *sistema) {
         return;
     }
 
-    caixa = obterCaixaParaEncerramentoAutomatico(sistema);
-    if (caixa == NULL) {
+    if (contarCaixasEmEncerramento(sistema) > 0) {
         return;
     }
 
-    if (obterTamanhoFila(&caixa->fila) >= N_MINIMO_CLIENTES_CAIXAS) {
+    clientesNasCaixas = contarClientesNasCaixas(sistema);
+    caixasOperacionais = contarCaixasOperacionais(sistema);
+
+    if (caixasOperacionais <= 0) {
+        return;
+    }
+
+    mediaClientesPorCaixa = (float)clientesNasCaixas / caixasOperacionais;
+
+    if (mediaClientesPorCaixa >= sistema->config.MIN_FILA) {
+        return;
+    }
+
+    caixa = obterCaixaParaEncerramentoAutomatico(sistema);
+    if (caixa == NULL) {
         return;
     }
 
@@ -541,7 +562,7 @@ void mostrarPainelSimulacao(SISTEMA *sistema) {
     printf("%s", LINHA_SEPARADORA);
 
     printf("Velocidade:              %dx\n", sistema->velocidadeSimulacao);
-    printf("Estado da simulacao:     %d\n", sistema->estadoSimulacao);
+    printf("Estado da simulacao:     %s\n",obterTextoEstadoSimulacao(sistema->estadoSimulacao));
     printf("Clientes em compras:     %d\n", sistema->clientesComprando.tamanho);
     printf("Clientes ativos (hash):  %d\n", sistema->clientesHash.nElementos);
     printf("Caixas abertas:          %d\n", sistema->nCaixasAbertas);
@@ -566,15 +587,47 @@ void mostrarPainelSimulacao(SISTEMA *sistema) {
         CAIXA *caixa = &sistema->caixas[i];
 
         printf(
-            "Caixa %d | Estado=%d | Abertura=%-7s | Fila=%d | EmAtendimento=%d | Total=%d | Atendidos=%d\n",
+            "Caixa %d | Estado=%-14s | Abertura=%-7s | Fila=%d | EmAtendimento=%d | Total=%d | Atendidos=%d\n",
             caixa->id,
-            caixa->estado,
+            obterTextoEstadoCaixa(caixa->estado),
             obterTextoControloCaixa(caixa),
             caixa->fila.tamanho,
             caixa->clienteAtual != NULL ? 1 : 0,
             caixa->fila.tamanho + (caixa->clienteAtual != NULL ? 1 : 0),
             caixa->clientesAtendidos
         );
+    }
+}
+// Converte o estado da simulação para texto,
+// permitindo apresentar estados legíveis ao utilizador.
+char *obterTextoEstadoSimulacao(ESTADO_SIMULACAO estado) {
+
+    switch (estado) {
+
+        case SIMULACAO_PARADA:
+            return "PARADA";
+
+        case SIMULACAO_ATIVA:
+            return "ATIVA";
+
+        case SIMULACAO_PAUSADA:
+            return "PAUSADA";
+
+        case SIMULACAO_ENCERRADA:
+            return "ENCERRADA";
+
+        default:
+            return "DESCONHECIDO";
+    }
+}
+// Converte o estado de uma caixa para texto,
+// facilitando a apresentação legível do estado ao utilizador.
+char *obterTextoEstadoCaixa(ESTADO_CAIXA estado) {
+    switch (estado) {
+        case CAIXA_FECHADA: return "FECHADA";
+        case CAIXA_ABERTA: return "ABERTA";
+        case CAIXA_EM_ENCERRAMENTO: return "ENCERRAMENTO";
+        default: return "DESCONHECIDO";
     }
 }
 // Lê entrada do teclado durante a simulação e pausa a execução caso a tecla 'P' seja pressionada
@@ -626,30 +679,26 @@ int obterDelayPorVelocidade(int velocidade) {
 // Reinicializa completamente o estado da simulação, limpando clientes, filas, caixas e estatísticas
 void reinicializarEstadoSimulacao(SISTEMA *sistema) {
     int i;
-    BUCKET *bucketAtual;
 
     if (sistema == NULL) {
         return;
     }
 
-    bucketAtual = sistema->clientesHash.inicio;
-    while (bucketAtual != NULL) {
-        HASHNODE *noAtual = bucketAtual->clientes;
+    for (i = 0; i < sistema->clientesHash.nBuckets; i++) {
+    HASHNODE *noAtual = sistema->clientesHash.buckets[i].clientes;
 
-        while (noAtual != NULL) {
-            if (noAtual->cliente != NULL) {
-                libertarCliente(noAtual->cliente);
-                noAtual->cliente = NULL;
-            }
-
-            noAtual = noAtual->prox;
+    while (noAtual != NULL) {
+        if (noAtual->cliente != NULL) {
+            libertarCliente(noAtual->cliente);
+            noAtual->cliente = NULL;
         }
 
-        bucketAtual = bucketAtual->prox;
+        noAtual = noAtual->prox;
     }
+}
 
     libertarHash(&sistema->clientesHash);
-    inicializarHash(&sistema->clientesHash, HASH_N_BUCKETS_INICIAL);
+    inicializarHash(&sistema->clientesHash, HASH_N_BUCKETS);
 
     libertarListaClientesComprando(&sistema->clientesComprando);
     inicializarListaClientesComprando(&sistema->clientesComprando);
