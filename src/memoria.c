@@ -167,7 +167,7 @@ void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro) {
         return;
     }
 
-   for (i = 0; i < sistema->clientesHash.nBuckets; i++) {
+    for (i = 0; i < sistema->clientesHash.nBuckets; i++) {
         HASHNODE *noAtual = sistema->clientesHash.buckets[i].clientes;
 
         while (noAtual != NULL) {
@@ -178,7 +178,6 @@ void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro) {
             noAtual = noAtual->prox;
         }
     }
-    
 
     if (sistema->caixas != NULL) {
         for (i = 0; i < sistema->config.N_CAIXAS; i++) {
@@ -205,18 +204,73 @@ void gerarRelatorioMemoria(SISTEMA *sistema, char *nomeFicheiro) {
         "fragmentacao de memoria ou consumo adicional do runtime.\n\n"
     );
 
-    fprintf(ficheiro, "Memoria total estimada das estruturas do sistema: %zu bytes\n", memoriaTotal);
-    fprintf(ficheiro, "Memoria desperdicada estimada nas bases dinamicas: %zu bytes\n", memoriaDesperdicada);
-    fprintf(ficheiro, "Memoria desperdicada estimada nos Nomes nas bases dinamicas: %zu bytes\n\n", memoriaDesperdicadaNomes);
+    fprintf(ficheiro, "Memoria total estimada das estruturas do sistema: ");
+    escreverMemoriaFormatada(ficheiro, memoriaTotal);
+    fprintf(ficheiro, "\n");
+
+    fprintf(ficheiro, "Memoria desperdicada estimada nas bases dinamicas: ");
+    escreverMemoriaFormatada(ficheiro, memoriaDesperdicada);
+    fprintf(ficheiro, "\n");
+
+    fprintf(ficheiro, "Memoria desperdicada estimada nos Nomes nas bases dinamicas: ");
+    escreverMemoriaFormatada(ficheiro, memoriaDesperdicadaNomes);
+    fprintf(ficheiro, "\n\n");
+
+    fprintf(ficheiro, "Ocupacao das bases dinamicas em unidades:\n");
+
+    fprintf(
+        ficheiro,
+        "  Clientes: %d ocupados / %d capacidade / %d livres\n",
+        sistema->baseClientes.tamanho,
+        sistema->baseClientes.capacidade,
+        calcularEspacoLivreClientes(sistema)
+    );
+
+    fprintf(
+        ficheiro,
+        "  Produtos: %d ocupados / %d capacidade / %d livres\n",
+        sistema->baseProdutos.tamanho,
+        sistema->baseProdutos.capacidade,
+        calcularEspacoLivreProdutos(sistema)
+    );
+
+    fprintf(
+        ficheiro,
+        "  Colaboradores: %d ocupados / %d capacidade / %d livres\n\n",
+        sistema->baseColaboradores.tamanho,
+        sistema->baseColaboradores.capacidade,
+        calcularEspacoLivreColaboradores(sistema)
+    );
 
     fprintf(ficheiro, "Detalhe por estrutura:\n");
-    fprintf(ficheiro, "  Bases carregadas: %zu bytes\n", calcularMemoriaBases(sistema));
-    fprintf(ficheiro, "  Caixas (vetor + historicos): %zu bytes\n", memoriaCaixas);
-    fprintf(ficheiro, "  Filas: %zu bytes\n", memoriaFilas);
-    fprintf(ficheiro, "  Hash de clientes: %zu bytes\n", memoriaHash);
-    fprintf(ficheiro, "  Lista de compras: %zu bytes\n", memoriaListaCompras);
-    fprintf(ficheiro, "  Logs: %zu bytes\n", memoriaLogs);
-    fprintf(ficheiro, "  Clientes da simulação e produtos associados: %zu bytes\n", memoriaClientesAtivos);
+
+    fprintf(ficheiro, "  Bases carregadas: ");
+    escreverMemoriaFormatada(ficheiro, calcularMemoriaBases(sistema));
+    fprintf(ficheiro, "\n");
+
+    fprintf(ficheiro, "  Caixas (vetor + historicos): ");
+    escreverMemoriaFormatada(ficheiro, memoriaCaixas);
+    fprintf(ficheiro, "\n");
+
+    fprintf(ficheiro, "  Filas: ");
+    escreverMemoriaFormatada(ficheiro, memoriaFilas);
+    fprintf(ficheiro, "\n");
+
+    fprintf(ficheiro, "  Hash de clientes: ");
+    escreverMemoriaFormatada(ficheiro, memoriaHash);
+    fprintf(ficheiro, "\n");
+
+    fprintf(ficheiro, "  Lista de compras: ");
+    escreverMemoriaFormatada(ficheiro, memoriaListaCompras);
+    fprintf(ficheiro, "\n");
+
+    fprintf(ficheiro, "  Logs: ");
+    escreverMemoriaFormatada(ficheiro, memoriaLogs);
+    fprintf(ficheiro, "\n");
+
+    fprintf(ficheiro, "  Clientes da simulacao e produtos associados: ");
+    escreverMemoriaFormatada(ficheiro, memoriaClientesAtivos);
+    fprintf(ficheiro, "\n");
 
     fclose(ficheiro);
 }
@@ -318,4 +372,45 @@ size_t calcularMemoriaDesperdicadaNomes(SISTEMA *sistema) {
     }
 
     return memoria;
+}
+
+int calcularEspacoLivreClientes(SISTEMA *sistema) {
+    if (sistema == NULL) return 0;
+    return sistema->baseClientes.capacidade - sistema->baseClientes.tamanho;
+}
+
+int calcularEspacoLivreProdutos(SISTEMA *sistema) {
+    if (sistema == NULL) return 0;
+    return sistema->baseProdutos.capacidade - sistema->baseProdutos.tamanho;
+}
+
+int calcularEspacoLivreColaboradores(SISTEMA *sistema) {
+    if (sistema == NULL) return 0;
+    return sistema->baseColaboradores.capacidade - sistema->baseColaboradores.tamanho;
+}
+
+void imprimirMemoriaFormatada(size_t bytes) {
+    if (bytes >= 1024 * 1024) {
+        printf("%.2f MB", (double)bytes / (1024.0 * 1024.0));
+    }
+    else if (bytes >= 1024) {
+        printf("%.2f KB", (double)bytes / 1024.0);
+    }
+    else {
+        printf("%zu bytes", bytes);
+    }
+}
+
+void escreverMemoriaFormatada(FILE *ficheiro, size_t bytes) {
+    if (ficheiro == NULL) {
+        return;
+    }
+
+    if (bytes >= 1024 * 1024) {
+        fprintf(ficheiro, "%.2f MB", (double)bytes / (1024.0 * 1024.0));
+    } else if (bytes >= 1024) {
+        fprintf(ficheiro, "%.2f KB", (double)bytes / 1024.0);
+    } else {
+        fprintf(ficheiro, "%zu bytes", bytes);
+    }
 }

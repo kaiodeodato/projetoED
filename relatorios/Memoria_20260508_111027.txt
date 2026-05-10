@@ -1,0 +1,24 @@
+RELATORIO DE MEMORIA (ESTIMATIVO)
+================================
+
+Nota: os valores apresentados correspondem a uma estimativa baseada nas estruturas
+de dados dinamicas geridas pelo programa, nao incluindo overhead interno do malloc,
+fragmentacao de memoria ou consumo adicional do runtime.
+
+Memoria total estimada das estruturas do sistema: 1.69 MB
+Memoria desperdicada estimada nas bases dinamicas: 4.54 KB
+Memoria desperdicada estimada nos Nomes nas bases dinamicas: 870.43 KB
+
+Ocupacao das bases dinamicas em unidades:
+  Clientes: 10002 ocupados / 10064 capacidade / 62 livres
+  Produtos: 9661 ocupados / 9664 capacidade / 3 livres
+  Colaboradores: 89 ocupados / 116 capacidade / 27 livres
+
+Detalhe por estrutura:
+  Bases carregadas: 1.68 MB
+  Caixas (vetor + historicos): 768 bytes
+  Filas: 0 bytes
+  Hash de clientes: 1.59 KB
+  Lista de compras: 24 bytes
+  Logs: 1.22 KB
+  Clientes da simulacao e produtos associados: 0 bytes

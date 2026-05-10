@@ -740,18 +740,70 @@ void mostrarRelatorioMemoriaMenu(SISTEMA *sistema) {
     limparTela();
     mostrarCabecalho("RELATORIO DE MEMORIA");
 
-    printf("Memoria total estimada das estruturas do sistema: %zu bytes\n", memoriaTotal);
-    printf("Memoria desperdicada estimada nas bases dinamicas: %zu bytes\n", memoriaDesperdicada);
-    printf("Memoria desperdicada estimada nos Nomes nas bases dinamicas: %zu bytes\n\n", memoriaDesperdicadaNomes);
+    printf("Memoria total estimada das estruturas do sistema: ");
+    imprimirMemoriaFormatada(memoriaTotal);
+    printf("\n");
+
+    printf("Memoria desperdicada estimada nas bases dinamicas: ");
+    imprimirMemoriaFormatada(memoriaDesperdicada);
+    printf("\n");
+
+    printf("Memoria desperdicada estimada nos Nomes nas bases dinamicas: ");
+    imprimirMemoriaFormatada(memoriaDesperdicadaNomes);
+    printf("\n\n");
+
+    printf("Ocupacao das bases dinamicas em unidades:\n");
+
+    printf(
+        "  Clientes: %d ocupados / %d capacidade / %d livres\n",
+        sistema->baseClientes.tamanho,
+        sistema->baseClientes.capacidade,
+        calcularEspacoLivreClientes(sistema)
+    );
+
+    printf(
+        "  Produtos: %d ocupados / %d capacidade / %d livres\n",
+        sistema->baseProdutos.tamanho,
+        sistema->baseProdutos.capacidade,
+        calcularEspacoLivreProdutos(sistema)
+    );
+
+    printf(
+        "  Colaboradores: %d ocupados / %d capacidade / %d livres\n\n",
+        sistema->baseColaboradores.tamanho,
+        sistema->baseColaboradores.capacidade,
+        calcularEspacoLivreColaboradores(sistema)
+    );
 
     printf("Detalhe por estrutura:\n");
-    printf("  Bases carregadas: %zu bytes\n", calcularMemoriaBases(sistema));
-    printf("  Caixas (vetor + historicos): %zu bytes\n", memoriaCaixas);
-    printf("  Filas: %zu bytes\n", memoriaFilas);
-    printf("  Hash de clientes: %zu bytes\n", memoriaHash);
-    printf("  Lista de compras: %zu bytes\n", memoriaListaCompras);
-    printf("  Logs: %zu bytes\n", memoriaLogs);
-    printf("  Clientes da simulação e produtos associados: %zu bytes\n", memoriaClientesAtivos);
+
+    printf("  Bases carregadas: ");
+    imprimirMemoriaFormatada(calcularMemoriaBases(sistema));
+    printf("\n");
+
+    printf("  Caixas (vetor + historicos): ");
+    imprimirMemoriaFormatada(memoriaCaixas);
+    printf("\n");
+
+    printf("  Filas: ");
+    imprimirMemoriaFormatada(memoriaFilas);
+    printf("\n");
+
+    printf("  Hash de clientes: ");
+    imprimirMemoriaFormatada(memoriaHash);
+    printf("\n");
+
+    printf("  Lista de compras: ");
+    imprimirMemoriaFormatada(memoriaListaCompras);
+    printf("\n");
+
+    printf("  Logs: ");
+    imprimirMemoriaFormatada(memoriaLogs);
+    printf("\n");
+
+    printf("  Clientes da simulacao e produtos associados: ");
+    imprimirMemoriaFormatada(memoriaClientesAtivos);
+    printf("\n");
 }
 // Interface para colocar uma caixa em modo automático, registando a ação no log do sistema
 int colocarCaixaEmAutoUI(SISTEMA *sistema) {
@@ -903,6 +955,7 @@ void mostrarMenuProdutos() {
     printf("1. Adicionar produto base\n");
     printf("2. Pesquisar produto por ID\n");
     printf("3. Listar produtos\n");
+    printf("4. Editar produto\n");
     printf("0. Voltar\n");
     printf("%s", LINHA_SEPARADORA);
 }
@@ -916,7 +969,7 @@ void executarMenuProdutos(SISTEMA *sistema) {
 
     while (opcao != 0) {
         mostrarMenuProdutos();
-        lerInteiro("Opcao: ", &opcao, 0, 3);
+        lerInteiro("Opcao: ", &opcao, 0, 4);
 
         switch (opcao) {
             case 1:
@@ -934,6 +987,12 @@ void executarMenuProdutos(SISTEMA *sistema) {
             case 3:
                 listarProdutosPaginado(&sistema->baseProdutos);
                 adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU PRODUTOS", "Listar Produtos");
+                pausarTela();
+                break;
+
+            case 4:
+                editarProduto(&sistema->baseProdutos);
+                adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU PRODUTOS", "Editar Produto");
                 pausarTela();
                 break;
 

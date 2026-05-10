@@ -17,5 +17,10 @@ size_t calcularMemoriaHistoricoClientesCaixa(HISTORICO_CLIENTES_CAIXA *historico
 size_t calcularMemoriaBases(SISTEMA *sistema);
 size_t calcularMemoriaDesperdicadaBases(SISTEMA *sistema);
 size_t calcularMemoriaDesperdicadaNomes(SISTEMA *sistema);
+int calcularEspacoLivreClientes(SISTEMA *sistema);
+int calcularEspacoLivreProdutos(SISTEMA *sistema);
+int calcularEspacoLivreColaboradores(SISTEMA *sistema);
+void imprimirMemoriaFormatada(size_t bytes);
+void escreverMemoriaFormatada(FILE *ficheiro, size_t bytes);
 
 #endif

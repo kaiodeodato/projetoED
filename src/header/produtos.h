@@ -14,5 +14,6 @@ int gerarProximoIdProdutoBase(BASE_PRODUTOS *base);
 void procurarProdutoPorId(BASE_PRODUTOS *base);
 void mostrarPaginaProdutos(BASE_PRODUTOS *base, int pagina);
 void listarProdutosPaginado(BASE_PRODUTOS *base);
+void editarProduto(BASE_PRODUTOS *base);
 
 #endif

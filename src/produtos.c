@@ -193,3 +193,54 @@ void listarProdutosPaginado(BASE_PRODUTOS *base) {
         }
     }
 }
+
+void editarProduto(BASE_PRODUTOS *base) {
+    int i;
+    int idProduto;
+    char novoNome[MAX_NOME_PRODUTO];
+    float novoPreco;
+    int novoTempoProcura;
+    int novoTempoPagamento;
+
+    if (base == NULL || base->dados == NULL || base->tamanho <= 0) {
+        printf("Base de produtos invalida.\n");
+        return;
+    }
+
+    lerInteiro("Id do produto: ", &idProduto, 1, 999999999);
+
+    for (i = 0; i < base->tamanho; i++) {
+
+        if (base->dados[i].id == idProduto) {
+
+            printf("\n========== PRODUTO ENCONTRADO ==========\n");
+            printf("ID: %d\n", base->dados[i].id);
+            printf("Nome atual: %s\n", base->dados[i].nome);
+            printf("Preco atual: %.2f euros\n", base->dados[i].preco);
+            printf("Tempo de procura atual: %d min\n", base->dados[i].tempoDeProcura);
+            printf("Tempo de pagamento atual: %d min\n", base->dados[i].tempoDePagamento);
+            printf("========================================\n\n");
+
+            lerString("Novo nome: ", novoNome, MAX_NOME_PRODUTO);
+            lerFloat("Novo preco: ", &novoPreco, 0.01f, 999999.0f);
+            lerInteiro("Novo tempo de procura: ", &novoTempoProcura, 1, 999999);
+            lerInteiro("Novo tempo de pagamento: ", &novoTempoPagamento, 1, 999999);
+
+            copiarStringSeguro(
+                base->dados[i].nome,
+                novoNome,
+                MAX_NOME_PRODUTO
+            );
+
+            base->dados[i].preco = novoPreco;
+            base->dados[i].tempoDeProcura = novoTempoProcura;
+            base->dados[i].tempoDePagamento = novoTempoPagamento;
+
+            printf("\nProduto editado com sucesso.\n");
+
+            return;
+        }
+    }
+
+    printf("Produto nao encontrado.\n");
+}

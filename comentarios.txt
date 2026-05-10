@@ -38,6 +38,10 @@ No sistema, as estruturas que realmente armazenam os dados completos são princi
 
 No sistema desenvolvido, todas as estruturas CLIENTE criadas dinamicamente permanecem alocadas na heap durante toda a execução da simulação, independentemente do estado em que o cliente se encontra. Isso significa que clientes em compras, em fila, em atendimento e até mesmo clientes já atendidos continuam existentes em memória até ao encerramento ou reinicialização da simulação. As diferentes estruturas do sistema (hash table, filas das caixas, cliente em atendimento e históricos) armazenam apenas ponteiros (CLIENTE*) para essas entidades, transferindo as referências entre estruturas ao longo do fluxo da simulação, sem duplicação dos dados. Esta abordagem foi adotada para permitir a preservação completa do histórico de clientes atendidos, possibilitando geração de relatórios detalhados, cálculo de estatísticas globais, análise posterior da execução e rastreamento completo das entidades simuladas. Embora esta estratégia aumente o consumo de memória ao longo da execução, ela simplifica significativamente a gestão do ciclo de vida dos objetos, evita problemas de referências inválidas (dangling pointers) e garante consistência entre todas as estruturas que partilham os mesmos clientes em memória.
 
+Stack - o compilador/runtime gere
+Heap - meu gerenciamento
+só libero todos os clientes que já sairam do supermercado e estao no historico, no encerramento da simulaçao, pq preciso dos seus dados para estatatisticaas
+
 Durante a execução da simulação foi implementado um mecanismo de controlo em tempo real através do teclado, permitindo ao utilizador pausar o sistema pressionando a tecla “P” durante o ciclo ativo. Este comportamento é detetado de forma assíncrona, sem interromper o fluxo principal da simulação, garantindo assim uma interação contínua com o utilizador e permitindo o acesso imediato ao menu de controlo durante a execução.
 
 Foi também implementado um indicador visual de execução (loading spinner), baseado numa sequência de caracteres rotativos, como |, /, - e . Este elemento é atualizado a cada ciclo da simulação e tem como objetivo fornecer feedback visual ao utilizador, demonstrando que o sistema se encontra em processamento ativo e reforçando a perceção de tempo real durante a execução do simulador.
@@ -209,3 +213,10 @@ Detalhe por estrutura:
 
 # Memória utilizada pelos clientes ativos e pelos seus produtos associados.
   Clientes ativos e produtos associados: 203584 bytes
+
+
+___________________________________________________________________________________________________
+
+
+remover espaços livres em vetores base
+editar produto, ediçao de produtos apos encerrramenteo ou antes de abertura apenas

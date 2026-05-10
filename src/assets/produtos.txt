@@ -9659,4 +9659,4 @@ id     nome                       preco   tempoDeProcura  tempoDePagamento
 51091 Bolacha Digestiva Aveia [marcaBé!] 300 G 1.79    18              0              
 51092 Bolacha Ottimini Limão [marcaBé!] 400G 2.39    10              3              
 51093 Bolacha Maria Choco [marcaBé!] 265 G 1.59    3               0              
-51094 Bolacha Dibus Space Angry Birds [marcaBé!] 315 G 1.89    28              2              
+51094 Bolacha Dibus Space Angry Birds 1.79    25              1              

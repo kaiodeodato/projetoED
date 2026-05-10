@@ -3,19 +3,10 @@ Codigo do atendente: 2856
 Nome do atendente: Ana Beatriz Campos Pereira
 
 Pessoas atendidas:
-  470234 - Leonor Santos Brito
-  179663 - Camilo Pires Cabral
-  409053 - Dina Paredes Caneco
-  850072 - Marisa Rego Seixas
-  460710 - Carla Andrade Regueira
-  113609 - Celino Castanheira Rego
-  243660 - Valdemar Pires Nunes
-  482765 - Catarina Belchior Almeida
-  620450 - Odete Eanes Ramalho
-  759292 - Maria Quadros Leao
+Nenhum cliente atendido.
 
-Clientes atendidos: 10
-Produtos vendidos: 180
-Valor vendido: 667.10
+Clientes atendidos: 0
+Produtos vendidos: 0
+Valor vendido: 0.00
 Produtos oferecidos: 0
 Valor oferecido: 0.00
