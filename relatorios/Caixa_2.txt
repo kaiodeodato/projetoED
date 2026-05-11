@@ -1,0 +1,63 @@
+Caixa 2
+Codigo do atendente: 3044
+Nome do atendente: Patricia Cabral Henriques Bras
+
+Pessoas atendidas:
+  89697 - Claudio Caneco Macedo
+  122973 - Maria Ferro Caneco
+  949532 - Alzinda Rocha Real
+  897272 - Bernardo Ferreira Mendes
+  911463 - Cristiano Paredes Caiado
+  231968 - Luis Rego Leao
+  72360 - Dulce Cardoso Brito
+  476480 - Duarte Aguiar Rego
+  233114 - Cristiana Moreno Estrela
+  830162 - Dolores Eanes Seixas
+  130109 - Vitor Brito Macedo
+  416762 - Lucas Carneiro Pacheco
+  828562 - Cristiana Arouca Castanheira
+  635048 - Celino Cunha Farias
+  307780 - Celso Baptista Arouca
+  200518 - Joana Amado Macedo
+  815377 - Francisca Macedo Carrico
+  389804 - Clarice Cardoso Amorim
+  384581 - Bruna Regueira Queiros
+  555476 - Camilo Calado Carreira
+  624813 - Clotilde Pires Silva
+  31919 - Camilo Amado Aguiar
+  808749 - Dolores Macedo Pacheco
+  539527 - Claudio Amado Clementino
+  323970 - Rita Proenca Cabral
+  197708 - Alzinda Nogueira Queiros
+  802164 - Rita Sequeira Soeiro
+  463951 - Carina Mora Barros
+  453463 - Bruno Cipriano Cabral
+  940447 - Bruno Santos Moreira
+  348179 - Eduardo Dias Fonseca
+  690893 - Daniel Seixas Amora
+  919208 - Daniel Rego Dinis
+  667575 - Bruno Leal Fonseca
+  380205 - Clarice Estrela Ferraz
+  614403 - Luis Coelho Caiado
+  545414 - Carla Carmona Coelho
+  916464 - Eduarda Brito Proenca
+  447955 - Bruna Carrico Bacelar
+  574427 - Eduardo Pinheiro Macedo
+  837834 - Catarina Almada Matos
+  455689 - Rita Arantes Pinheiro
+  457199 - Liliana Castro Moura
+  352541 - Clotilde Moreno Andrade
+  882392 - Carina Ramalho Nunes
+  118252 - Claudio Pires Mota
+  452781 - Celino Ferro Carneiro
+  910056 - Carmo Peres Azevedo
+  963282 - Dora Castro Antunes
+  602994 - Duarte Carneiro Estrela
+  500840 - Boris Estrela Carvalheira
+  728210 - Duarte Almeida Seixas
+
+Clientes atendidos: 52
+Produtos vendidos: 1321
+Valor vendido: 5449.65
+Produtos oferecidos: 3
+Valor oferecido: 2.12

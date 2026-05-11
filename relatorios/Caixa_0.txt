@@ -1,0 +1,89 @@
+Caixa 0
+Codigo do atendente: 4322
+Nome do atendente: Joana Manies Ferreira Bastos
+
+Pessoas atendidas:
+  792803 - Soraia Dias Ferro
+  618932 - Leonor Soeiro Cabral
+  958654 - Paulo Arouca Azenha
+  111470 - Camilo Regueira Ramalho
+  728580 - Celino Dinis Paredes
+  627470 - Duarte Carrasco Andrade
+  908327 - Clarice Seixas Farias
+  112969 - Carmo Santos Vivas
+  217788 - Dulcineia Dias Nascimento
+  520261 - Hugo Matos Vivas
+  968160 - Francisca Soeiro Coelho
+  638571 - Boris Rosado Mourao
+  200323 - Vitor Cunha Nunes
+  984736 - Clotilde Calheiros Mateus
+  833687 - Dora Mendes Lobato
+  821793 - Leonor Domingos Andrade
+  753528 - Leonor Nogueira Mendes
+  208520 - Liliana Azenha Eanes
+  845562 - Eduarda Mourao Azevedo
+  122253 - Carina Ramalho Caneco
+  106740 - Valdemar Baptista Lobato
+  638440 - Maria Carreira Bacelar
+  945992 - Carina Nunes Carvalheira
+  4475 - Ricardo Domingos Caneco
+  157196 - Odete Rocha Nascimento
+  550785 - Dina Antunes Mourao
+  591561 - Silvia Santos Macedo
+  210128 - Paulo Barros Amorim
+  932097 - Rita Arantes Ferraz
+  522482 - Clarice Quadros Moura
+  197354 - Rodolfo Rocha Mourao
+  107713 - Liliana Clementino Carreira
+  712846 - Rita Carrasco Rego
+  238983 - Lucas Barbosa Calado
+  814582 - Catarina Soeiro Almada
+  43001 - Dulce Proenca Arantes
+  273457 - Pedro Cunha Pires
+  176340 - Dulce Mourao Rego
+  862538 - Rodolfo Ferraz Azenha
+  122740 - Celso Castanheira Calheiros
+  55768 - Valdemar Mourao Rocha
+  161807 - Claudio Lopes Clementino
+  983878 - Lucas Carmona Farias
+  937796 - Leonor Soeiro Carrasco
+  330801 - Bruno Cunha Seixas
+  365468 - Ana Brito Amora
+  248821 - Hugo Rosado Lopes
+  47984 - Cristiana Carrasco Rosado
+  904244 - Carina Carreira Quadros
+  842672 - Celino Peres Seixas
+  291336 - Lucas Coelho Andrade
+  847070 - Ricardo Moreno Cunha
+  444232 - Bruna Quadros Valbom
+  783731 - Boris Farias Bogas
+  408015 - Clotilde Ferreira Antunes
+  970042 - Alzinda Lobato Mota
+  745319 - Daniel Paredes Ferraz
+  418585 - Dina Valbom Nunes
+  261832 - Silvia Ferro Cabral
+  574887 - Lucas Cipriano Nunes
+  964154 - Francisco Belchior Amorim
+  745695 - Cristiana Baptista Belchior
+  176082 - Silvia Lopes Farias
+  357824 - Boris Rego Barros
+  381989 - Bernardo Eanes Amora
+  989856 - Dolores Calado Cipriano
+  837268 - Cristina Ferro Amora
+  469216 - Silvia Brito Domingos
+  942640 - Carlota Dias Bacelar
+  258423 - Celina Leal Mourao
+  889383 - Cristiano Sequeira Amora
+  742641 - Joana Lobato Queiros
+  136574 - Odete Silva Estrela
+  374155 - Rodolfo Dinis Cipriano
+  862847 - Valdemar Amora Vivas
+  342113 - Soraia Caneco Rego
+  917874 - Cristiana Sequeira Carrico
+  795143 - Paula Bogas Rocha
+
+Clientes atendidos: 78
+Produtos vendidos: 1548
+Valor vendido: 6477.71
+Produtos oferecidos: 0
+Valor oferecido: 0.00

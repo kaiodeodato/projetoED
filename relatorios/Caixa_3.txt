@@ -1,0 +1,49 @@
+Caixa 3
+Codigo do atendente: 9164
+Nome do atendente: Carolina Rita Cruz Almeida
+
+Pessoas atendidas:
+  268747 - Bruna Castro Santos
+  426335 - Alzinda Macedo Amado
+  376945 - Celso Mourao Santos
+  950703 - Valdemar Seixas Bacelar
+  126613 - Marisa Valbom Ferraz
+  350452 - Camilo Mateus Carreira
+  973423 - Valdemar Santos Leao
+  131712 - Dolores Valbom Brito
+  234460 - Dulce Mourao Leal
+  933936 - Daniel Calheiros Estrela
+  456004 - Basilio Amado Soeiro
+  607691 - Pedro Cipriano Caiado
+  24295 - Daniel Carrasco Matos
+  876896 - Silvia Belchior Rocha
+  236214 - Bruna Bacelar Carneiro
+  161085 - Dulcineia Calado Almeida
+  411182 - Joana Almada Quadros
+  974180 - Bruno Mourao Fonseca
+  435514 - Valdemar Carmona Santos
+  51283 - Dulcineia Moreira Queiros
+  134910 - Bruna Amorim Pacheco
+  88526 - Rita Coelho Mourao
+  901383 - Eduarda Santos Andrade
+  801680 - Paulo Almada Brito
+  398221 - Claudio Soeiro Azevedo
+  393643 - Dulce Lopes Carvalheira
+  184189 - Leonor Rego Cardoso
+  19878 - Basilio Rocha Coelho
+  138009 - Camilo Tinoco Arouca
+  719942 - Cristina Rego Carvalheira
+  553912 - Bruna Amorim Coelho
+  232880 - Lucas Peres Barbosa
+  304484 - Marisa Castanheira Ramalho
+  530703 - Eduarda Paredes Azevedo
+  233002 - Ricardo Queiros Barbosa
+  704419 - Eduarda Bogas Quadros
+  679457 - Leonor Peres Cipriano
+  859400 - Bruno Mota Almeida
+
+Clientes atendidos: 38
+Produtos vendidos: 918
+Valor vendido: 3559.58
+Produtos oferecidos: 0
+Valor oferecido: 0.00

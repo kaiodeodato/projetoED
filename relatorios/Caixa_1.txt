@@ -1,0 +1,72 @@
+Caixa 1
+Codigo do atendente: 2856
+Nome do atendente: Ana Beatriz Campos Pereira
+
+Pessoas atendidas:
+  336645 - Cristiano Barbosa Amado
+  603235 - Rodolfo Brito Eanes
+  431527 - Francisco Soeiro Rego
+  486798 - Ricardo Ramalho Cunha
+  187729 - David Baptista Castro
+  704489 - Daniel Ferreira Almada
+  895794 - Dolores Arantes Lopes
+  958191 - Leonor Soeiro Vivas
+  763252 - Carla Brito Moreira
+  638571 - Boris Rosado Mourao
+  17878 - Silvia Proenca Pinto
+  860546 - Celina Calheiros Barbosa
+  740565 - Marisa Cardoso Aguiar
+  608704 - Francisco Almeida Almada
+  541802 - Dulcineia Fonseca Mendes
+  456630 - Bernardo Almeida Cardoso
+  306853 - Carina Amorim Pinto
+  63909 - Ricardo Silva Moura
+  412776 - Maria Amora Bacelar
+  493481 - Celino Cipriano Moreno
+  598598 - Valdemar Dias Andrade
+  126451 - Joana Estrela Mora
+  114754 - Rita Calheiros Baptista
+  206714 - Cristina Caiado Real
+  807910 - Celso Dinis Amorim
+  80815 - Eduarda Antunes Fonseca
+  964432 - Leonor Cunha Mora
+  682979 - Basilio Ferro Caneco
+  89091 - Bruna Carvalheira Pinto
+  675801 - Marisa Carmona Dinis
+  258955 - Cristiano Azevedo Mendes
+  234911 - Dora Leao Caneco
+  879915 - Daniel Caiado Barros
+  964530 - Alzinda Soeiro Baptista
+  413482 - Duarte Ferro Vivas
+  127403 - Boris Coelho Matos
+  368464 - Eduarda Arouca Nunes
+  323470 - Ana Ferreira Cipriano
+  65561 - Daniel Eanes Silva
+  139715 - Eduarda Almeida Valbom
+  167007 - Bruno Carrico Aguiar
+  151518 - Luis Brito Almeida
+  302379 - Francisco Nascimento Proenca
+  900772 - Eduardo Carreira Andrade
+  921161 - Celina Nogueira Antunes
+  301704 - Ricardo Mendes Caiado
+  146933 - Vitor Antunes Mota
+  959211 - Paula Lopes Rego
+  909603 - Soraia Mendes Mourao
+  518330 - Rita Clementino Cabral
+  3278 - Clotilde Mourao Lobato
+  496062 - Valdemar Amorim Moura
+  859444 - Pedro Calheiros Carvalheira
+  96027 - Basilio Castro Regueira
+  217343 - Joana Pinto Amorim
+  386825 - Bruno Baptista Leal
+  508094 - Celino Pinto Caneco
+  285859 - Paulo Nascimento Clementino
+  468174 - Paulo Coelho Martins
+  657633 - Celso Matos Brito
+  82619 - Silvia Tinoco Ramalho
+
+Clientes atendidos: 61
+Produtos vendidos: 1400
+Valor vendido: 6019.05
+Produtos oferecidos: 0
+Valor oferecido: 0.00
