@@ -12,8 +12,8 @@ size_t calcularMemoriaCliente(CLIENTE *cliente) {
 
     memoria += sizeof(CLIENTE);
 
-    if (cliente->produtos != NULL && cliente->nProdutos > 0) {
-        memoria += sizeof(PRODUTO) * cliente->nProdutos;
+    if (cliente->idsProdutos != NULL && cliente->nProdutos > 0) {
+        memoria += sizeof(int) * cliente->nProdutos;
     }
 
     return memoria;
@@ -361,11 +361,6 @@ size_t calcularMemoriaDesperdicadaNomes(SISTEMA *sistema) {
         memoria += MAX_NOME - usados;
     }
 
-    for (i = 0; i < sistema->baseProdutos.tamanho; i++) {
-        usados = strlen(sistema->baseProdutos.dados[i].nome) + 1;
-        memoria += MAX_NOME_PRODUTO - usados;
-    }
-
     for (i = 0; i < sistema->baseColaboradores.tamanho; i++) {
         usados = strlen(sistema->baseColaboradores.dados[i].nome) + 1;
         memoria += MAX_NOME - usados;
@@ -373,22 +368,22 @@ size_t calcularMemoriaDesperdicadaNomes(SISTEMA *sistema) {
 
     return memoria;
 }
-
+// Calcula o número de posições livres disponíveis na base de clientes
 int calcularEspacoLivreClientes(SISTEMA *sistema) {
     if (sistema == NULL) return 0;
     return sistema->baseClientes.capacidade - sistema->baseClientes.tamanho;
 }
-
+// Calcula o número de posições livres disponíveis na base de produtos
 int calcularEspacoLivreProdutos(SISTEMA *sistema) {
     if (sistema == NULL) return 0;
     return sistema->baseProdutos.capacidade - sistema->baseProdutos.tamanho;
 }
-
+// Calcula o número de posições livres disponíveis na base de colaboradores
 int calcularEspacoLivreColaboradores(SISTEMA *sistema) {
     if (sistema == NULL) return 0;
     return sistema->baseColaboradores.capacidade - sistema->baseColaboradores.tamanho;
 }
-
+// Mostra um valor de memória formatado em bytes, KB ou MB
 void imprimirMemoriaFormatada(size_t bytes) {
     if (bytes >= 1024 * 1024) {
         printf("%.2f MB", (double)bytes / (1024.0 * 1024.0));
@@ -400,7 +395,7 @@ void imprimirMemoriaFormatada(size_t bytes) {
         printf("%zu bytes", bytes);
     }
 }
-
+// Escreve um valor de memória formatado em bytes, KB ou MB para um ficheiro
 void escreverMemoriaFormatada(FILE *ficheiro, size_t bytes) {
     if (ficheiro == NULL) {
         return;

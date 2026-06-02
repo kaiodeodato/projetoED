@@ -25,10 +25,12 @@ int lerOpcaoMenu(int min, int max) {
     return opcao;
 }
 // Mostra o menu principal na tela com as opções disponíveis ao utilizador
-void mostrarMenuPrincipal() {
+void mostrarMenuPrincipal(SISTEMA *sistema) {
     limparTela();
     mostrarCabecalho("MENU PRINCIPAL");
-    printf("1. Iniciar simulacao\n");
+    if (sistema->estadoSimulacao != SIMULACAO_PAUSADA) {
+        printf("1. Iniciar simulacao\n");
+    }
     printf("2. Retomar simulacao\n");
     printf("3. Encerrar simulacao\n");
     printf("4. Mostrar estado resumido\n");
@@ -44,11 +46,18 @@ void executarOpcaoMenu(SISTEMA *sistema, int opcao) {
     }
     switch (opcao) {
         case 1:
+            if (sistema->estadoSimulacao == SIMULACAO_PAUSADA) {
+                printf("A simulacao esta pausada. Utilize a opcao 2 para retomar.\n");
+                pausarTela();
+                break;
+            }
+
             if (sistema->estadoSimulacao == SIMULACAO_ENCERRADA) {
                 reinicializarEstadoSimulacao(sistema);
             }
-            executarSimulacao(sistema);
-            break;
+
+    executarSimulacao(sistema);
+    break;
 
         case 2:
             if (sistema->estadoSimulacao == SIMULACAO_PAUSADA) {
@@ -91,8 +100,6 @@ void executarOpcaoMenu(SISTEMA *sistema, int opcao) {
 }
 // Adiciona um novo cliente à base de dados, garantindo capacidade dinâmica e gravando o resultado no ficheiro
 void adicionarClienteBaseMenu(SISTEMA *sistema) {
-    CLIENTE_BASE *novosDados;
-    int novaCapacidade;
     char nome[MAX_NOME];
 
     if (sistema == NULL) {
@@ -101,23 +108,13 @@ void adicionarClienteBaseMenu(SISTEMA *sistema) {
 
     lerString("Nome do cliente: ", nome, MAX_NOME);
 
-    if (sistema->baseClientes.tamanho >= sistema->baseClientes.capacidade) {
-        novaCapacidade = sistema->baseClientes.capacidade <= 0
-            ? CAPACIDADE_INICIAL_CLIENTES_BASE
-            : sistema->baseClientes.capacidade * FATOR_CRESCIMENTO_VETORES;
-
-        novosDados = (CLIENTE_BASE *)realloc(sistema->baseClientes.dados,sizeof(CLIENTE_BASE) * novaCapacidade);
-
-        if (novosDados == NULL) {
-            printf("Erro ao alocar memoria para clientes base.\n");
-            return;
-        }
-
-        sistema->baseClientes.dados = novosDados;
-        sistema->baseClientes.capacidade = novaCapacidade;
+    if (!garantirCapacidadeClientes(&sistema->baseClientes)) {
+        printf("Erro ao alocar memoria para clientes base.\n");
+        return;
     }
 
-    sistema->baseClientes.dados[sistema->baseClientes.tamanho].id = gerarProximoIdClienteBase(&sistema->baseClientes);
+    sistema->baseClientes.dados[sistema->baseClientes.tamanho].id =
+        gerarProximoIdClienteBase(&sistema->baseClientes);
 
     copiarStringSeguro(
         sistema->baseClientes.dados[sistema->baseClientes.tamanho].nome,
@@ -135,8 +132,6 @@ void adicionarClienteBaseMenu(SISTEMA *sistema) {
 }
 // Adiciona um novo produto à base de dados, gerindo memória dinâmica e persistindo os dados em ficheiro
 void adicionarProdutoBaseMenu(SISTEMA *sistema) {
-    PRODUTO *novosDados;
-    int novaCapacidade;
     char nome[MAX_NOME_PRODUTO];
     float preco;
     int tempoProcura;
@@ -151,30 +146,22 @@ void adicionarProdutoBaseMenu(SISTEMA *sistema) {
     lerInteiro("Tempo de procura: ", &tempoProcura, 1, 999999);
     lerInteiro("Tempo de pagamento: ", &tempoPagamento, 1, 999999);
 
-    if (sistema->baseProdutos.tamanho >= sistema->baseProdutos.capacidade) {
-        novaCapacidade = sistema->baseProdutos.capacidade <= 0
-            ? CAPACIDADE_INICIAL_PRODUTOS_BASE
-            : sistema->baseProdutos.capacidade * FATOR_CRESCIMENTO_VETORES;
-
-        novosDados = (PRODUTO *)realloc(sistema->baseProdutos.dados,sizeof(PRODUTO) * novaCapacidade);
-
-        if (novosDados == NULL) {
-            printf("Erro ao alocar memoria para produtos base.\n");
-            return;
-        }
-
-        sistema->baseProdutos.dados = novosDados;
-        sistema->baseProdutos.capacidade = novaCapacidade;
+    if (!garantirCapacidadeProdutos(&sistema->baseProdutos)) {
+        printf("Erro ao alocar memoria para produtos base.\n");
+        return;
     }
 
     sistema->baseProdutos.dados[sistema->baseProdutos.tamanho].id =
         gerarProximoIdProdutoBase(&sistema->baseProdutos);
 
-    copiarStringSeguro(
-        sistema->baseProdutos.dados[sistema->baseProdutos.tamanho].nome,
-        nome,
-        MAX_NOME_PRODUTO
-    );
+    sistema->baseProdutos.dados[sistema->baseProdutos.tamanho].nome =(char *)malloc(strlen(nome) + 1);
+
+    if (sistema->baseProdutos.dados[sistema->baseProdutos.tamanho].nome == NULL) {
+        printf("Erro ao alocar memoria para nome do produto.\n");
+        return;
+    }
+
+strcpy(sistema->baseProdutos.dados[sistema->baseProdutos.tamanho].nome, nome);
 
     sistema->baseProdutos.dados[sistema->baseProdutos.tamanho].preco = preco;
     sistema->baseProdutos.dados[sistema->baseProdutos.tamanho].tempoDeProcura = tempoProcura;
@@ -270,6 +257,8 @@ void mostrarEstadoResumidoSistema(SISTEMA *sistema) {
         horas,
         minutos
     );
+    printf("Mercado:              %s\n",(horas >= HORARIO_ABERTURA && horas < HORARIO_FECHO) ? "ABERTO" : "FECHADO");
+    printf("%s", LINHA_SEPARADORA);
     printf("Velocidade: %dx\n", sistema->velocidadeSimulacao);
     printf("Estado da simulacao:     %s\n",obterTextoEstadoSimulacao(sistema->estadoSimulacao));
     printf("Clientes em compras: %d\n", sistema->clientesComprando.tamanho);
@@ -309,6 +298,9 @@ void mostrarEstadoResumidoSistema(SISTEMA *sistema) {
 void pesquisarClienteAtivoMenu(SISTEMA *sistema) {
     int idCliente;
     CLIENTE *cliente;
+    int i;
+    int j;
+    char nomeCliente[MAX_NOME] = "Desconhecido";
 
     if (sistema == NULL) {
         return;
@@ -323,9 +315,16 @@ void pesquisarClienteAtivoMenu(SISTEMA *sistema) {
         return;
     }
 
+    for (i = 0; i < sistema->baseClientes.tamanho; i++) {
+        if (sistema->baseClientes.dados[i].id == cliente->id) {
+            copiarStringSeguro(nomeCliente, sistema->baseClientes.dados[i].nome, MAX_NOME);
+            break;
+        }
+    }
+
     printf("Cliente encontrado:\n");
     printf("Id: %06d\n", cliente->id);
-    printf("Nome: %s\n", cliente->nome);
+    printf("Nome: %s\n", nomeCliente);
     printf("Estado: ");
 
     if (cliente->estado == CLIENTE_A_COMPRAR) {
@@ -346,17 +345,17 @@ void pesquisarClienteAtivoMenu(SISTEMA *sistema) {
     } else {
         printf("%d\n", cliente->idCaixaAtual);
     }
-        
+
     printf("Numero de produtos: %d\n", cliente->nProdutos);
-
-    int i;
-
     printf("\nProdutos:\n");
 
     for (i = 0; i < cliente->nProdutos; i++) {
-        printf("  - %s (%.2f)€\n",
-            cliente->produtos[i].nome,
-            cliente->produtos[i].preco);
+        for (j = 0; j < sistema->baseProdutos.tamanho; j++) {
+            if (sistema->baseProdutos.dados[j].id == cliente->idsProdutos[i]) {
+                printf("%-4.2f€ - %s\n",sistema->baseProdutos.dados[j].preco, sistema->baseProdutos.dados[j].nome);
+                break;
+            }
+        }
     }
 }
 // Filtro genérico que considera válido qualquer cliente não nulo.
@@ -398,7 +397,7 @@ void listarClientesMenu(SISTEMA *sistema, const char *titulo, FILTRO_CLIENTE fil
     }
 
     while (1) {
-        mostrarPaginaClientes(lista, total, pagina, titulo);
+        mostrarPaginaClientes(sistema, lista, total, pagina, titulo);
 
         scanf(" %c", &opcao);
 
@@ -431,10 +430,15 @@ void listarClientesComprandoMenu(SISTEMA *sistema) {
 }
 // Mostra uma página da listagem de clientes,
 // exibindo ID, nome, estado atual e caixa associada quando aplicável.
-void mostrarPaginaClientes(CLIENTE **lista, int total, int pagina, const char *titulo) {
+void mostrarPaginaClientes(SISTEMA *sistema, CLIENTE **lista, int total, int pagina, const char *titulo) {
     int i;
+    int j;
     int inicio = pagina * CLIENTES_POR_PAGINA;
     int fim = inicio + CLIENTES_POR_PAGINA;
+
+    if (sistema == NULL) {
+        return;
+    }
 
     if (fim > total) {
         fim = total;
@@ -447,8 +451,16 @@ void mostrarPaginaClientes(CLIENTE **lista, int total, int pagina, const char *t
 
     for (i = inicio; i < fim; i++) {
         CLIENTE *cliente = lista[i];
+        char nomeCliente[MAX_NOME] = "Desconhecido";
 
-        printf("ID: %06d | Nome: %-50s", cliente->id, cliente->nome);
+        for (j = 0; j < sistema->baseClientes.tamanho; j++) {
+            if (sistema->baseClientes.dados[j].id == cliente->id) {
+                copiarStringSeguro(nomeCliente, sistema->baseClientes.dados[j].nome, MAX_NOME);
+                break;
+            }
+        }
+
+        printf("ID: %06d | Nome: %-50s", cliente->id, nomeCliente);
 
         if (cliente->estado == CLIENTE_EM_ATENDIMENTO) {
             printf(" | Estado: EM ATENDIMENTO | Caixa: %d\n", cliente->idCaixaAtual);
@@ -672,10 +684,19 @@ void mostrarEstatisticasSimulacaoMenu(SISTEMA *sistema) {
     }
 
     if (clienteMaisGastou != NULL) {
+        char nomeClienteMais[MAX_NOME] = "Desconhecido";
+
+        for (i = 0; i < sistema->baseClientes.tamanho; i++) {
+            if (sistema->baseClientes.dados[i].id == clienteMaisGastou->id) {
+                copiarStringSeguro(nomeClienteMais, sistema->baseClientes.dados[i].nome, MAX_NOME);
+                break;
+            }
+        }
+
         printf(
             "Cliente que mais gastou: %06d - %s (%.2f)\n",
             clienteMaisGastou->id,
-            clienteMaisGastou->nome,
+            nomeClienteMais,
             clienteMaisGastou->valorTotalCompras
         );
     } else {
@@ -683,10 +704,19 @@ void mostrarEstatisticasSimulacaoMenu(SISTEMA *sistema) {
     }
 
     if (clienteMenosGastou != NULL) {
+        char nomeClienteMenos[MAX_NOME] = "Desconhecido";
+
+        for (i = 0; i < sistema->baseClientes.tamanho; i++) {
+            if (sistema->baseClientes.dados[i].id == clienteMenosGastou->id) {
+                copiarStringSeguro(nomeClienteMenos, sistema->baseClientes.dados[i].nome, MAX_NOME);
+                break;
+            }
+        }
+
         printf(
             "Cliente que menos gastou: %06d - %s (%.2f)\n",
             clienteMenosGastou->id,
-            clienteMenosGastou->nome,
+            nomeClienteMenos,
             clienteMenosGastou->valorTotalCompras
         );
     } else {
@@ -991,7 +1021,7 @@ void executarMenuProdutos(SISTEMA *sistema) {
                 break;
 
             case 4:
-                editarProduto(&sistema->baseProdutos);
+                editarProduto(sistema);
                 adicionarLog(&sistema->logs, sistema->tempoAtual, "MENU PRODUTOS", "Editar Produto");
                 pausarTela();
                 break;

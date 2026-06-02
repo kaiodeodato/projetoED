@@ -21,9 +21,12 @@
 #include "clientes.h"
 #include "main.h"
 
+
 // Função principal que inicializa o sistema, carrega dados, executa a simulação e liberta recursos no final
 int main(void) {
     configurarAmbienteUTF8();
+
+
     SISTEMA sistema;
 
     srand((unsigned int)time(NULL));
@@ -132,7 +135,7 @@ void executarLoopPrincipal(SISTEMA *sistema) {
     }
 
     while (opcao != 0) {
-        mostrarMenuPrincipal();
+        mostrarMenuPrincipal(sistema);
         opcao = lerOpcaoMenu(0, 6);
 
         if (opcao == 0 && (sistema->estadoSimulacao == SIMULACAO_ATIVA || sistema->estadoSimulacao == SIMULACAO_PAUSADA)) {
@@ -199,6 +202,7 @@ void gerarSaidasFinais(SISTEMA *sistema) {
     gerarRelatorioMemoria(sistema, nomeMemoria);
 }
 // Liberta todas as estruturas dinâmicas do sistema, incluindo caixas, filas, listas, hash e bases de dados
+// primeiro liberta os dados apontados (CLIENTE *) e só depois liberta as estruturas que guardam os ponteiros.
 void libertarEstruturasDinamicas(SISTEMA *sistema) {
     int i;
 
@@ -275,6 +279,8 @@ void libertarClientesHistoricoCaixas(SISTEMA *sistema) {
 }
 // Liberta a memória das bases de clientes, produtos e colaboradores e reinicializa os seus estados
 void libertarBases(SISTEMA *sistema) {
+    int i;
+
     if (sistema == NULL) {
         return;
     }
@@ -285,6 +291,11 @@ void libertarBases(SISTEMA *sistema) {
     }
 
     if (sistema->baseProdutos.dados != NULL) {
+        for (i = 0; i < sistema->baseProdutos.tamanho; i++) {
+            free(sistema->baseProdutos.dados[i].nome);
+            sistema->baseProdutos.dados[i].nome = NULL;
+        }
+
         free(sistema->baseProdutos.dados);
         sistema->baseProdutos.dados = NULL;
     }

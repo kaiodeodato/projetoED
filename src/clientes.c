@@ -48,7 +48,7 @@ int gerarNovosClientes(SISTEMA *sistema) {
         return 0;
     }
 
-    if (Aleatorio(1, 100) > 15) {
+    if (Aleatorio(1, 100) > 10) {
         return 0;
     }
 
@@ -107,17 +107,16 @@ CLIENTE *gerarClienteAleatorio(SISTEMA *sistema) {
     }
 
     cliente->id = clienteBase->id;
-    copiarStringSeguro(cliente->nome, clienteBase->nome, MAX_NOME);
 
     gerarProdutosCliente(cliente, sistema);
 
-    if (cliente->produtos == NULL || cliente->nProdutos <= 0) {
+    if (cliente->idsProdutos == NULL || cliente->nProdutos <= 0) {
         libertarCliente(cliente);
         return NULL;
     }
 
-    ordenarProdutosClientePorPreco(cliente);
-    calcularCamposDerivadosCliente(cliente);
+    ordenarProdutosClientePorPreco(cliente, sistema);
+    calcularCamposDerivadosCliente(cliente, sistema);
 
     cliente->tempoRestanteCompras = cliente->tempoTotalCompras;
     cliente->tempoRestanteAtendimento = cliente->tempoTotalPagamento;
@@ -143,8 +142,8 @@ void gerarProdutosCliente(CLIENTE *cliente, SISTEMA *sistema) {
         return;
     }
 
-    cliente->produtos = (PRODUTO *)malloc(sizeof(PRODUTO) * quantidade);
-    if (cliente->produtos == NULL) {
+    cliente->idsProdutos = (int *)malloc(sizeof(int) * quantidade);
+    if (cliente->idsProdutos == NULL) {
         cliente->nProdutos = 0;
         return;
     }
@@ -159,52 +158,113 @@ void gerarProdutosCliente(CLIENTE *cliente, SISTEMA *sistema) {
             break;
         }
 
-        cliente->produtos[i] = *produtoBase;
+        cliente->idsProdutos[i] = produtoBase->id;
     }
 
     if (cliente->nProdutos <= 0) {
-        free(cliente->produtos);
-        cliente->produtos = NULL;
+        free(cliente->idsProdutos);
+        cliente->idsProdutos = NULL;
     }
 }
 // Ordena os produtos do cliente por preço, se houver mais de um produto
-void ordenarProdutosClientePorPreco(CLIENTE *cliente) {
-    if (cliente == NULL || cliente->produtos == NULL || cliente->nProdutos <= 1) {
+void ordenarProdutosClientePorPreco(CLIENTE *cliente, SISTEMA *sistema) {
+    int i;
+    int j;
+    int k;
+    int temp;
+    PRODUTO *produtoAtual;
+    PRODUTO *produtoSeguinte;
+
+    if (cliente == NULL || sistema == NULL || cliente->idsProdutos == NULL || cliente->nProdutos <= 1) {
         return;
     }
 
-    ordenarProdutosPorPreco(cliente->produtos, cliente->nProdutos);
+    for (i = 0; i < cliente->nProdutos - 1; i++) {
+        for (j = 0; j < cliente->nProdutos - 1 - i; j++) {
+            produtoAtual = NULL;
+            produtoSeguinte = NULL;
+
+            for (k = 0; k < sistema->baseProdutos.tamanho; k++) {
+                if (sistema->baseProdutos.dados[k].id == cliente->idsProdutos[j]) {
+                    produtoAtual = &sistema->baseProdutos.dados[k];
+                }
+
+                if (sistema->baseProdutos.dados[k].id == cliente->idsProdutos[j + 1]) {
+                    produtoSeguinte = &sistema->baseProdutos.dados[k];
+                }
+            }
+
+            if (produtoAtual != NULL && produtoSeguinte != NULL &&
+                produtoAtual->preco > produtoSeguinte->preco) {
+                temp = cliente->idsProdutos[j];
+                cliente->idsProdutos[j] = cliente->idsProdutos[j + 1];
+                cliente->idsProdutos[j + 1] = temp;
+            }
+        }
+    }
 }
 // Calcula o tempo total de compras do cliente somando o tempo de todos os produtos
-int calcularTempoTotalComprasCliente(CLIENTE *cliente) {
-    if (cliente == NULL || cliente->produtos == NULL || cliente->nProdutos <= 0) {
-        return 0;
-    }
-
-    return calcularTempoTotalProdutos(cliente->produtos, cliente->nProdutos);
-}
-// Calcula o tempo total de pagamento somando o tempo de pagamento de todos os produtos do cliente
-int calcularTempoTotalPagamentoCliente(CLIENTE *cliente) {
+int calcularTempoTotalComprasCliente(CLIENTE *cliente, SISTEMA *sistema) {
     int i;
+    int j;
     int total = 0;
 
-    if (cliente == NULL || cliente->produtos == NULL || cliente->nProdutos <= 0) {
+    if (cliente == NULL || sistema == NULL || cliente->idsProdutos == NULL || cliente->nProdutos <= 0) {
         return 0;
     }
 
     for (i = 0; i < cliente->nProdutos; i++) {
-        total += cliente->produtos[i].tempoDePagamento;
+        for (j = 0; j < sistema->baseProdutos.tamanho; j++) {
+            if (sistema->baseProdutos.dados[j].id == cliente->idsProdutos[i]) {
+                total += sistema->baseProdutos.dados[j].tempoDeProcura;
+                break;
+            }
+        }
+    }
+
+    return total;
+}
+// Calcula o tempo total de pagamento somando o tempo de pagamento de todos os produtos do cliente
+int calcularTempoTotalPagamentoCliente(CLIENTE *cliente, SISTEMA *sistema) {
+    int i;
+    int j;
+    int total = 0;
+
+    if (cliente == NULL || sistema == NULL || cliente->idsProdutos == NULL || cliente->nProdutos <= 0) {
+        return 0;
+    }
+
+    for (i = 0; i < cliente->nProdutos; i++) {
+        for (j = 0; j < sistema->baseProdutos.tamanho; j++) {
+            if (sistema->baseProdutos.dados[j].id == cliente->idsProdutos[i]) {
+                total += sistema->baseProdutos.dados[j].tempoDePagamento;
+                break;
+            }
+        }
     }
 
     return total;
 }
 // Calcula o valor total das compras do cliente somando os preços de todos os produtos
-float calcularValorTotalComprasCliente(CLIENTE *cliente) {
-    if (cliente == NULL || cliente->produtos == NULL || cliente->nProdutos <= 0) {
+float calcularValorTotalComprasCliente(CLIENTE *cliente, SISTEMA *sistema) {
+    int i;
+    int j;
+    float total = 0.0f;
+
+    if (cliente == NULL || sistema == NULL || cliente->idsProdutos == NULL || cliente->nProdutos <= 0) {
         return 0.0f;
     }
 
-    return calcularValorTotalProdutos(cliente->produtos, cliente->nProdutos);
+    for (i = 0; i < cliente->nProdutos; i++) {
+        for (j = 0; j < sistema->baseProdutos.tamanho; j++) {
+            if (sistema->baseProdutos.dados[j].id == cliente->idsProdutos[i]) {
+                total += sistema->baseProdutos.dados[j].preco;
+                break;
+            }
+        }
+    }
+
+    return total;
 }
 // Atualiza o estado do cliente para o novo estado indicado
 void atualizarEstadoCliente(CLIENTE *cliente, ESTADO_CLIENTE novoEstado) {
@@ -318,10 +378,12 @@ int clienteTemDireitoAOferta(SISTEMA *sistema, CLIENTE *cliente, int instanteAtu
     return tempoEspera > sistema->config.MAX_ESPERA;
 }
 // Aplica uma oferta ao cliente, oferecendo o produto mais barato caso ainda não tenha recebido
-void aplicarOfertaCliente(CLIENTE *cliente) {
+void aplicarOfertaCliente(CLIENTE *cliente, SISTEMA *sistema) {
     int indiceMaisBarato;
+    int i;
+    PRODUTO *produto = NULL;
 
-    if (cliente == NULL) {
+    if (cliente == NULL || sistema == NULL) {
         return;
     }
 
@@ -329,16 +391,28 @@ void aplicarOfertaCliente(CLIENTE *cliente) {
         return;
     }
 
-    indiceMaisBarato = obterIndiceProdutoMaisBarato(cliente);
+    indiceMaisBarato = obterIndiceProdutoMaisBarato(cliente, sistema);
     if (indiceMaisBarato == INDICE_INVALIDO) {
         return;
     }
 
+    for (i = 0; i < sistema->baseProdutos.tamanho; i++) {
+        if (sistema->baseProdutos.dados[i].id == cliente->idsProdutos[indiceMaisBarato]) {
+            produto = &sistema->baseProdutos.dados[i];
+            break;
+        }
+    }
+
+    if (produto == NULL) {
+        return;
+    }
+
     cliente->recebeuOferta = CLIENTE_RECEBEU_OFERTA;
-    cliente->valorOferta = cliente->produtos[indiceMaisBarato].preco;
+    cliente->valorOferta = produto->preco;
+
     copiarStringSeguro(
         cliente->nomeProdutoOferecido,
-        cliente->produtos[indiceMaisBarato].nome,
+        produto->nome,
         MAX_NOME_PRODUTO
     );
 }
@@ -364,9 +438,9 @@ void libertarCliente(CLIENTE *cliente) {
         return;
     }
 
-    if (cliente->produtos != NULL) {
-        free(cliente->produtos);
-        cliente->produtos = NULL;
+    if (cliente->idsProdutos != NULL) {
+        free(cliente->idsProdutos);
+        cliente->idsProdutos = NULL;
     }
 
     free(cliente);
@@ -378,9 +452,8 @@ void limparCamposCliente(CLIENTE *cliente) {
     }
 
     cliente->id = 0;
-    cliente->nome[0] = '\0';
     cliente->nProdutos = 0;
-    cliente->produtos = NULL;
+    cliente->idsProdutos = NULL;
     cliente->estado = CLIENTE_A_COMPRAR;
     cliente->idCaixaAtual = ID_CAIXA_INVALIDO;
     cliente->instanteEntradaSistema = 0;
@@ -398,20 +471,37 @@ void limparCamposCliente(CLIENTE *cliente) {
     cliente->valorOferta = 0.0f;
     cliente->nomeProdutoOferecido[0] = '\0';
 }
-// Gera uma quantidade aleatória de produtos para o cliente dentro dos limites definidos na configuração
+// Gera uma quantidade aleatória de produtos para cada cliente utilizando
+// uma distribuição de probabilidade mais realista, onde compras pequenas
+// são mais frequentes do que compras muito grandes.
+// 55% pequenos   35% médios    10% grandes
 int obterQuantidadeProdutosCliente(SISTEMA *sistema) {
     int maxProdutos;
+    int chance;
+
+    int limitePequeno;
+    int limiteMedio;
 
     if (sistema == NULL) {
-        return 0;
+        return MIN_PRODUTOS_CLIENTE_DEFAULT;
     }
 
     maxProdutos = sistema->config.MAX_PRODUTOS_CLIENTE;
+
     if (maxProdutos < MIN_PRODUTOS_CLIENTE_DEFAULT) {
         maxProdutos = MAX_PRODUTOS_CLIENTE_DEFAULT;
     }
 
-    return Aleatorio(MIN_PRODUTOS_CLIENTE_DEFAULT, maxProdutos);
+    limitePequeno = maxProdutos * 0.25;
+    limiteMedio = maxProdutos * 0.60;
+
+    chance = Aleatorio(1, 100);
+
+    if (chance <= 55) return Aleatorio(1, limitePequeno);
+
+    if (chance <= 90) return Aleatorio(limitePequeno + 1, limiteMedio);
+
+    return Aleatorio(limiteMedio + 1, maxProdutos);
 }
 // Gera uma quantidade aleatória de novos clientes para o ciclo atual, respeitando os limites configurados
 int obterQuantidadeNovosClientesNoCiclo(SISTEMA *sistema) {
@@ -425,40 +515,42 @@ int obterQuantidadeNovosClientesNoCiclo(SISTEMA *sistema) {
     minimo = sistema->config.MIN_NOVOS_CLIENTES_POR_CICLO;
     maximo = sistema->config.MAX_NOVOS_CLIENTES_POR_CICLO;
 
-    if (minimo < 0) {
-        minimo = MIN_NOVOS_CLIENTES_POR_CICLO_DEFAULT;
-    }
-
-    if (maximo < minimo) {
-        maximo = MAX_NOVOS_CLIENTES_POR_CICLO_DEFAULT;
-    }
+    if (minimo < 0) minimo = MIN_NOVOS_CLIENTES_POR_CICLO_DEFAULT;
+    if (maximo < minimo) maximo = MAX_NOVOS_CLIENTES_POR_CICLO_DEFAULT;
 
     return Aleatorio(minimo, maximo);
 }
 // Calcula e atualiza os campos derivados do cliente (tempo de compras, tempo de pagamento e valor total)
-void calcularCamposDerivadosCliente(CLIENTE *cliente) {
-    if (cliente == NULL) {
+void calcularCamposDerivadosCliente(CLIENTE *cliente, SISTEMA *sistema) {
+    if (cliente == NULL || sistema == NULL) {
         return;
     }
 
-    cliente->tempoTotalCompras = calcularTempoTotalComprasCliente(cliente);
-    cliente->tempoTotalPagamento = calcularTempoTotalPagamentoCliente(cliente);
-    cliente->valorTotalCompras = calcularValorTotalComprasCliente(cliente);
+    cliente->tempoTotalCompras = calcularTempoTotalComprasCliente(cliente, sistema);
+    cliente->tempoTotalPagamento = calcularTempoTotalPagamentoCliente(cliente, sistema);
+    cliente->valorTotalCompras = calcularValorTotalComprasCliente(cliente, sistema);
 }
 // Retorna o índice do produto mais barato na lista de produtos do cliente
-int obterIndiceProdutoMaisBarato(CLIENTE *cliente) {
+int obterIndiceProdutoMaisBarato(CLIENTE *cliente, SISTEMA *sistema) {
     int i;
-    int indiceMaisBarato;
+    int j;
+    int indiceMaisBarato = INDICE_INVALIDO;
+    float menorPreco = 0.0f;
 
-    if (cliente == NULL || cliente->produtos == NULL || cliente->nProdutos <= 0) {
+    if (cliente == NULL || sistema == NULL || cliente->idsProdutos == NULL || cliente->nProdutos <= 0) {
         return INDICE_INVALIDO;
     }
 
-    indiceMaisBarato = 0;
+    for (i = 0; i < cliente->nProdutos; i++) {
+        for (j = 0; j < sistema->baseProdutos.tamanho; j++) {
+            if (sistema->baseProdutos.dados[j].id == cliente->idsProdutos[i]) {
+                if (indiceMaisBarato == INDICE_INVALIDO || sistema->baseProdutos.dados[j].preco < menorPreco) {
+                    indiceMaisBarato = i;
+                    menorPreco = sistema->baseProdutos.dados[j].preco;
+                }
 
-    for (i = 1; i < cliente->nProdutos; i++) {
-        if (cliente->produtos[i].preco < cliente->produtos[indiceMaisBarato].preco) {
-            indiceMaisBarato = i;
+                break;
+            }
         }
     }
 
@@ -485,24 +577,6 @@ int contarClientesNasCaixas(SISTEMA *sistema) {
         total += sistema->caixas[i].fila.tamanho;
 
         if (sistema->caixas[i].clienteAtual != NULL) {
-            total++;
-        }
-    }
-
-    return total;
-}
-// Conta o número total de clientes no sistema somando os que estão a comprar, os que estão nas filas dos caixas e os que estão a ser atendidos no momento.
-int contarClientesSistema(SISTEMA *sistema) {
-    int total = 0;
-
-    total += sistema->clientesComprando.tamanho;
-
-    for (int i = 0; i < sistema->config.N_CAIXAS; i++) {
-        CAIXA *caixa = &sistema->caixas[i];
-
-        total += caixa->fila.tamanho;
-
-        if (caixa->clienteAtual != NULL) {
             total++;
         }
     }

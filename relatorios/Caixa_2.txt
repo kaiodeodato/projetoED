@@ -1,0 +1,12 @@
+Caixa 2
+Codigo do atendente: 3044
+Nome do atendente: Patricia Cabral Henriques Bras
+
+Pessoas atendidas:
+Nenhum cliente atendido.
+
+Clientes atendidos: 0
+Produtos vendidos: 0
+Valor vendido: 0.00
+Produtos oferecidos: 0
+Valor oferecido: 0.00

@@ -10,7 +10,7 @@
 
 typedef struct Produto {
     int id;
-    char nome[MAX_NOME_PRODUTO];
+    char *nome;
     float preco;
     int tempoDeProcura;
     int tempoDePagamento;
@@ -62,9 +62,9 @@ typedef struct Estatisticas {
 
 typedef struct Cliente {
     int id;
-    char nome[MAX_NOME];
     int nProdutos;
-    PRODUTO *produtos;
+    int *idsProdutos;
+    int idClienteBase;
     ESTADO_CLIENTE estado;
     int idCaixaAtual;
     int instanteEntradaSistema;
@@ -147,12 +147,6 @@ typedef struct HashTable {
     int nElementos;
 } HASHTABLE;
 
-typedef struct LogAcao {
-    int instante;
-    char acao[MAX_NOME_ACAO_LOG];
-    char descricao[MAX_NOME_DESCRICAO_LOG];
-} LOG_ACAO;
-
 typedef struct NoClienteComprando {
     CLIENTE *cliente;
     struct NoClienteComprando *seguinte;
@@ -193,6 +187,12 @@ typedef enum EstadoSimulacao {
     SIMULACAO_PAUSADA,
     SIMULACAO_ENCERRADA
 } ESTADO_SIMULACAO;
+
+typedef struct LogAcao {
+    int instante;
+    char acao[MAX_NOME_ACAO_LOG];
+    char descricao[MAX_NOME_DESCRICAO_LOG];
+} LOG_ACAO;
 
 typedef struct NoLogAcao {
     LOG_ACAO log;

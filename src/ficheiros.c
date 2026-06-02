@@ -4,12 +4,16 @@
 #include <direct.h>
 #include "ficheiros.h"
 #include "define.h"
+#include "uteis.h"
 #include "colaboradores.h"
 
 // Carrega a base de clientes a partir de um ficheiro, armazenando os dados válidos em memória
 int carregarBaseClientes(BASE_CLIENTES *base, char *nomeFicheiro) {
     FILE *ficheiro;
     char linha[256];
+    int totalClientes;
+    CLIENTE_BASE cliente;
+    int lidos;
 
     if (base == NULL || nomeFicheiro == NULL) {
         return 0;
@@ -19,31 +23,41 @@ int carregarBaseClientes(BASE_CLIENTES *base, char *nomeFicheiro) {
     base->tamanho = 0;
     base->capacidade = 0;
 
+    totalClientes = contarClientesValidosFicheiro(nomeFicheiro);
+    if (totalClientes <= 0) {
+        return 0;
+    }
+
+    base->dados = (CLIENTE_BASE *)malloc(sizeof(CLIENTE_BASE) * totalClientes);
+    if (base->dados == NULL) {
+        return 0;
+    }
+
+    base->capacidade = totalClientes;
+
     ficheiro = fopen(nomeFicheiro, "r");
     if (ficheiro == NULL) {
+        free(base->dados);
+        base->dados = NULL;
+        base->capacidade = 0;
         return 0;
     }
 
     if (fgets(linha, sizeof(linha), ficheiro) == NULL) {
         fclose(ficheiro);
+        free(base->dados);
+        base->dados = NULL;
+        base->capacidade = 0;
         return 0;
     }
 
     while (fgets(linha, sizeof(linha), ficheiro) != NULL) {
-        CLIENTE_BASE cliente;
-        int lidos;
-
         cliente.id = 0;
         cliente.nome[0] = '\0';
 
-        lidos = sscanf(linha, "%d %99[^\n]", &cliente.id, cliente.nome);
+        lidos = sscanf(linha, "%d %39[^\n]", &cliente.id, cliente.nome);
         if (lidos != 2) {
             continue;
-        }
-
-        if (!garantirCapacidadeClientes(base)) {
-            fclose(ficheiro);
-            return 0;
         }
 
         base->dados[base->tamanho] = cliente;
@@ -57,6 +71,7 @@ int carregarBaseClientes(BASE_CLIENTES *base, char *nomeFicheiro) {
 int carregarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro) {
     FILE *ficheiro;
     char linha[256];
+    int totalProdutos;
 
     if (base == NULL || nomeFicheiro == NULL) {
         return 0;
@@ -66,13 +81,31 @@ int carregarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro) {
     base->tamanho = 0;
     base->capacidade = 0;
 
+    totalProdutos = contarProdutosValidosFicheiro(nomeFicheiro);
+    if (totalProdutos <= 0) {
+        return 0;
+    }
+
+    base->dados = (PRODUTO *)malloc(sizeof(PRODUTO) * totalProdutos);
+    if (base->dados == NULL) {
+        return 0;
+    }
+
+    base->capacidade = totalProdutos;
+
     ficheiro = fopen(nomeFicheiro, "r");
     if (ficheiro == NULL) {
+        free(base->dados);
+        base->dados = NULL;
+        base->capacidade = 0;
         return 0;
     }
 
     if (fgets(linha, sizeof(linha), ficheiro) == NULL) {
         fclose(ficheiro);
+        free(base->dados);
+        base->dados = NULL;
+        base->capacidade = 0;
         return 0;
     }
 
@@ -89,62 +122,35 @@ int carregarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro) {
         produto.preco = 0.0f;
         produto.tempoDeProcura = 0;
         produto.tempoDePagamento = 0;
-        produto.nome[0] = '\0';
+        produto.nome = NULL;
         nomeTemp[0] = '\0';
 
         linha[strcspn(linha, "\r\n")] = '\0';
 
         pos = (int)strlen(linha) - 1;
-        if (pos < 0) {
-            continue;
-        }
+        if (pos < 0) continue;
 
-        while (pos >= 0 && (linha[pos] == ' ' || linha[pos] == '\t')) {
-            pos--;
-        }
-        if (pos < 0) {
-            continue;
-        }
-
-        while (pos >= 0 && linha[pos] != ' ' && linha[pos] != '\t') {
-            pos--;
-        }
+        while (pos >= 0 && (linha[pos] == ' ' || linha[pos] == '\t')) pos--;
+        if (pos < 0) continue;
+        while (pos >= 0 && linha[pos] != ' ' && linha[pos] != '\t') pos--;
         tempoPagamento = atoi(&linha[pos + 1]);
 
-        while (pos >= 0 && (linha[pos] == ' ' || linha[pos] == '\t')) {
-            pos--;
-        }
-        if (pos < 0) {
-            continue;
-        }
-
-        while (pos >= 0 && linha[pos] != ' ' && linha[pos] != '\t') {
-            pos--;
-        }
+        while (pos >= 0 && (linha[pos] == ' ' || linha[pos] == '\t')) pos--;
+        if (pos < 0) continue;
+        while (pos >= 0 && linha[pos] != ' ' && linha[pos] != '\t') pos--;
         tempoProcura = atoi(&linha[pos + 1]);
 
-        while (pos >= 0 && (linha[pos] == ' ' || linha[pos] == '\t')) {
-            pos--;
-        }
-        if (pos < 0) {
-            continue;
-        }
-
-        while (pos >= 0 && linha[pos] != ' ' && linha[pos] != '\t') {
-            pos--;
-        }
+        while (pos >= 0 && (linha[pos] == ' ' || linha[pos] == '\t')) pos--;
+        if (pos < 0) continue;
+        while (pos >= 0 && linha[pos] != ' ' && linha[pos] != '\t') pos--;
         preco = (float)atof(&linha[pos + 1]);
 
-        if (pos < 0) {
-            continue;
-        }
+        if (pos < 0) continue;
 
         linha[pos] = '\0';
 
         lidos = sscanf(linha, "%d %127[^\n]", &id, nomeTemp);
-        if (lidos != 2) {
-            continue;
-        }
+        if (lidos != 2) continue;
 
         comprimento = strlen(nomeTemp);
         while (comprimento > 0 &&
@@ -158,17 +164,29 @@ int carregarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro) {
         produto.tempoDeProcura = tempoProcura;
         produto.tempoDePagamento = tempoPagamento;
 
-        strncpy(produto.nome, nomeTemp, MAX_NOME_PRODUTO - 1);
-        produto.nome[MAX_NOME_PRODUTO - 1] = '\0';
+        produto.nome = (char *)malloc(strlen(nomeTemp) + 1);
+        if (produto.nome == NULL) {
+            int j;
 
-        if (!garantirCapacidadeProdutos(base)) {
+            for (j = 0; j < base->tamanho; j++) {
+                free(base->dados[j].nome);
+                base->dados[j].nome = NULL;
+            }
+
+            free(base->dados);
+            base->dados = NULL;
+            base->tamanho = 0;
+            base->capacidade = 0;
+
             fclose(ficheiro);
             return 0;
         }
 
+strcpy(produto.nome, nomeTemp);
+
         base->dados[base->tamanho] = produto;
         base->tamanho++;
-    }
+        }
 
     fclose(ficheiro);
     return base->tamanho;
@@ -177,6 +195,9 @@ int carregarBaseProdutos(BASE_PRODUTOS *base, char *nomeFicheiro) {
 int carregarBaseColaboradores(BASE_COLABORADORES *base, char *nomeFicheiro) {
     FILE *ficheiro;
     char linha[256];
+    int totalColaboradores;
+    COLABORADOR colaborador;
+    int lidos;
 
     if (base == NULL || nomeFicheiro == NULL) {
         return 0;
@@ -186,24 +207,39 @@ int carregarBaseColaboradores(BASE_COLABORADORES *base, char *nomeFicheiro) {
     base->tamanho = 0;
     base->capacidade = 0;
 
+    totalColaboradores = contarColaboradoresValidosFicheiro(nomeFicheiro);
+    if (totalColaboradores <= 0) {
+        return 0;
+    }
+
+    base->dados = (COLABORADOR *)malloc(sizeof(COLABORADOR) * totalColaboradores);
+    if (base->dados == NULL) {
+        return 0;
+    }
+
+    base->capacidade = totalColaboradores;
+
     ficheiro = fopen(nomeFicheiro, "r");
     if (ficheiro == NULL) {
+        free(base->dados);
+        base->dados = NULL;
+        base->capacidade = 0;
         return 0;
     }
 
     if (fgets(linha, sizeof(linha), ficheiro) == NULL) {
         fclose(ficheiro);
+        free(base->dados);
+        base->dados = NULL;
+        base->capacidade = 0;
         return 0;
     }
 
     while (fgets(linha, sizeof(linha), ficheiro) != NULL) {
-        COLABORADOR colaborador;
-        int lidos;
-
         colaborador.id = 0;
         colaborador.nome[0] = '\0';
 
-        lidos = sscanf(linha, "%d %99[^\n]", &colaborador.id, colaborador.nome);
+        lidos = sscanf(linha, "%d %39[^\n]", &colaborador.id, colaborador.nome);
 
         if (lidos != 2) {
             continue;
@@ -212,11 +248,6 @@ int carregarBaseColaboradores(BASE_COLABORADORES *base, char *nomeFicheiro) {
         colaborador.clientesAtendidos = 0;
         colaborador.idCaixaAssociada = ID_CAIXA_INVALIDO;
         colaborador.ativo = 0;
-
-        if (!garantirCapacidadeColaboradores(base)) {
-            fclose(ficheiro);
-            return 0;
-        }
 
         base->dados[base->tamanho] = colaborador;
         base->tamanho++;
@@ -420,11 +451,20 @@ int escreverRelatorioEstatisticas(SISTEMA *sistema, char *nomeFicheiro) {
     }
 
     if (clienteMaisGastou != NULL) {
+    char nomeClienteMais[MAX_NOME] = "Desconhecido";
+
+    for (i = 0; i < sistema->baseClientes.tamanho; i++) {
+        if (sistema->baseClientes.dados[i].id == clienteMaisGastou->id) {
+            copiarStringSeguro(nomeClienteMais, sistema->baseClientes.dados[i].nome, MAX_NOME);
+            break;
+        }
+    }
+
         fprintf(
             ficheiro,
             "Cliente que mais gastou: %06d - %s (%.2f)\n",
             clienteMaisGastou->id,
-            clienteMaisGastou->nome,
+            nomeClienteMais,
             clienteMaisGastou->valorTotalCompras
         );
     } else {
@@ -432,14 +472,23 @@ int escreverRelatorioEstatisticas(SISTEMA *sistema, char *nomeFicheiro) {
     }
 
     if (clienteMenosGastou != NULL) {
-        fprintf(
-            ficheiro,
-            "Cliente que menos gastou: %06d - %s (%.2f)\n",
-            clienteMenosGastou->id,
-            clienteMenosGastou->nome,
-            clienteMenosGastou->valorTotalCompras
-        );
-    } else {
+    char nomeClienteMenos[MAX_NOME] = "Desconhecido";
+
+    for (i = 0; i < sistema->baseClientes.tamanho; i++) {
+        if (sistema->baseClientes.dados[i].id == clienteMenosGastou->id) {
+            copiarStringSeguro(nomeClienteMenos, sistema->baseClientes.dados[i].nome, MAX_NOME);
+            break;
+        }
+    }
+
+    fprintf(
+        ficheiro,
+        "Cliente que menos gastou: %06d - %s (%.2f)\n",
+        clienteMenosGastou->id,
+        nomeClienteMenos,
+        clienteMenosGastou->valorTotalCompras
+    );
+} else {
         fprintf(ficheiro, "Cliente que menos gastou: nenhum cliente atendido\n");
     }
 
@@ -546,11 +595,12 @@ int garantirCapacidadeColaboradores(BASE_COLABORADORES *base) {
     return 1;
 }
 // Gera um relatório detalhado de uma caixa em ficheiro, incluindo operador, clientes atendidos e estatísticas
-int escreverRelatorioCaixa(CAIXA *caixa, char *nomeFicheiro) {
+// Gera um relatório detalhado de uma caixa em ficheiro, incluindo operador, clientes atendidos e estatísticas
+int escreverRelatorioCaixa(SISTEMA *sistema, CAIXA *caixa, char *nomeFicheiro) {
     FILE *ficheiro;
     NO_HISTORICO_CLIENTE *atual;
 
-    if (caixa == NULL || nomeFicheiro == NULL) {
+    if (sistema == NULL || caixa == NULL || nomeFicheiro == NULL) {
         return 0;
     }
 
@@ -572,15 +622,34 @@ int escreverRelatorioCaixa(CAIXA *caixa, char *nomeFicheiro) {
     fprintf(ficheiro, "\nPessoas atendidas:\n");
 
     atual = caixa->historicoClientes.inicio;
+
     if (atual == NULL) {
         fprintf(ficheiro, "Nenhum cliente atendido.\n");
     } else {
         while (atual != NULL) {
             if (atual->cliente != NULL) {
-                fprintf(ficheiro, "  %d - %s\n",
-                        atual->cliente->id,
-                        atual->cliente->nome);
+                char nomeCliente[MAX_NOME] = "Desconhecido";
+                int i;
+
+                for (i = 0; i < sistema->baseClientes.tamanho; i++) {
+                    if (sistema->baseClientes.dados[i].id == atual->cliente->id) {
+                        copiarStringSeguro(
+                            nomeCliente,
+                            sistema->baseClientes.dados[i].nome,
+                            MAX_NOME
+                        );
+                        break;
+                    }
+                }
+
+                fprintf(
+                    ficheiro,
+                    "  %06d - %s\n",
+                    atual->cliente->id,
+                    nomeCliente
+                );
             }
+
             atual = atual->seguinte;
         }
     }
@@ -614,7 +683,7 @@ void escreverRelatoriosTodasCaixas(SISTEMA *sistema) {
             EXTENSAO_TXT
         );
 
-        escreverRelatorioCaixa(&sistema->caixas[i], nomeFicheiro);
+        escreverRelatorioCaixa(sistema, &sistema->caixas[i], nomeFicheiro);
     }
 }
 // Remove todos os ficheiros da pasta de relatórios e recria a pasta limpa
@@ -630,4 +699,141 @@ void limparPastaRelatorios(void) {
 
     system(comando);
     _mkdir(PASTA_RELATORIOS);
+}
+// Conta o número de clientes válidos presentes no ficheiro de clientes
+int contarClientesValidosFicheiro(char *nomeFicheiro) {
+    FILE *ficheiro;
+    char linha[256];
+    int total = 0;
+    CLIENTE_BASE cliente;
+    int lidos;
+
+    if (nomeFicheiro == NULL) {
+        return 0;
+    }
+
+    ficheiro = fopen(nomeFicheiro, "r");
+    if (ficheiro == NULL) {
+        return 0;
+    }
+
+    if (fgets(linha, sizeof(linha), ficheiro) == NULL) {
+        fclose(ficheiro);
+        return 0;
+    }
+
+    while (fgets(linha, sizeof(linha), ficheiro) != NULL) {
+        cliente.id = 0;
+        cliente.nome[0] = '\0';
+
+        lidos = sscanf(linha, "%d %39[^\n]", &cliente.id, cliente.nome);
+
+        if (lidos == 2) {
+            total++;
+        }
+    }
+
+    fclose(ficheiro);
+    return total;
+}
+// Conta o número de produtos válidos presentes no ficheiro de produtos
+int contarProdutosValidosFicheiro(char *nomeFicheiro) {
+    FILE *ficheiro;
+    char linha[256];
+    int total = 0;
+
+    if (nomeFicheiro == NULL) {
+        return 0;
+    }
+
+    ficheiro = fopen(nomeFicheiro, "r");
+    if (ficheiro == NULL) {
+        return 0;
+    }
+
+    if (fgets(linha, sizeof(linha), ficheiro) == NULL) {
+        fclose(ficheiro);
+        return 0;
+    }
+
+    while (fgets(linha, sizeof(linha), ficheiro) != NULL) {
+        int id, tempoProcura, tempoPagamento;
+        float preco;
+        char nomeTemp[128];
+        int lidos;
+        int pos;
+
+        linha[strcspn(linha, "\r\n")] = '\0';
+
+        pos = (int)strlen(linha) - 1;
+        if (pos < 0) {
+            continue;
+        }
+
+        while (pos >= 0 && (linha[pos] == ' ' || linha[pos] == '\t')) pos--;
+        if (pos < 0) continue;
+        while (pos >= 0 && linha[pos] != ' ' && linha[pos] != '\t') pos--;
+        tempoPagamento = atoi(&linha[pos + 1]);
+
+        while (pos >= 0 && (linha[pos] == ' ' || linha[pos] == '\t')) pos--;
+        if (pos < 0) continue;
+        while (pos >= 0 && linha[pos] != ' ' && linha[pos] != '\t') pos--;
+        tempoProcura = atoi(&linha[pos + 1]);
+
+        while (pos >= 0 && (linha[pos] == ' ' || linha[pos] == '\t')) pos--;
+        if (pos < 0) continue;
+        while (pos >= 0 && linha[pos] != ' ' && linha[pos] != '\t') pos--;
+        preco = (float)atof(&linha[pos + 1]);
+
+        if (pos < 0) {
+            continue;
+        }
+
+        linha[pos] = '\0';
+
+        lidos = sscanf(linha, "%d %127[^\n]", &id, nomeTemp);
+
+        if (lidos == 2) {
+            total++;
+        }
+    }
+
+    fclose(ficheiro);
+    return total;
+}
+// Conta o número de colaboradores válidos presentes no ficheiro de colaboradores
+int contarColaboradoresValidosFicheiro(char *nomeFicheiro) {
+    FILE *ficheiro;
+    char linha[256];
+    int total = 0;
+    COLABORADOR colaborador;
+    int lidos;
+
+    if (nomeFicheiro == NULL) {
+        return 0;
+    }
+
+    ficheiro = fopen(nomeFicheiro, "r");
+    if (ficheiro == NULL) {
+        return 0;
+    }
+
+    if (fgets(linha, sizeof(linha), ficheiro) == NULL) {
+        fclose(ficheiro);
+        return 0;
+    }
+
+    while (fgets(linha, sizeof(linha), ficheiro) != NULL) {
+        colaborador.id = 0;
+        colaborador.nome[0] = '\0';
+
+        lidos = sscanf(linha, "%d %39[^\n]", &colaborador.id, colaborador.nome);
+
+        if (lidos == 2) {
+            total++;
+        }
+    }
+
+    fclose(ficheiro);
+    return total;
 }

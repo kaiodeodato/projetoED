@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "produtos.h"
+#include "ficheiros.h"
 #include "define.h"
 #include "uteis.h"
 
@@ -15,65 +16,6 @@ PRODUTO *gerarProdutoAleatorio(BASE_PRODUTOS *base) {
 
     indice = Aleatorio(0, base->tamanho - 1);
     return &base->dados[indice];
-}
-// Ordena os produtos por preço em ordem crescente usando algoritmo de bubble sort
-void ordenarProdutosPorPreco(PRODUTO *produtos, int quantidade) {
-    int i;
-    int j;
-
-    if (produtos == NULL || quantidade <= 1) {
-        return;
-    }
-
-    for (i = 0; i < quantidade - 1; i++) {
-        for (j = 0; j < quantidade - 1 - i; j++) {
-            if (produtos[j].preco > produtos[j + 1].preco) {
-                trocarProdutos(&produtos[j], &produtos[j + 1]);
-            }
-        }
-    }
-}
-// Calcula o tempo total de procura de um conjunto de produtos
-int calcularTempoTotalProdutos(PRODUTO *produtos, int quantidade) {
-    int i;
-    int tempoTotal = 0;
-
-    if (produtos == NULL || quantidade <= 0) {
-        return 0;
-    }
-
-    for (i = 0; i < quantidade; i++) {
-        tempoTotal += produtos[i].tempoDeProcura;
-    }
-
-    return tempoTotal;
-}
-// Calcula o valor total de um conjunto de produtos somando os preços
-float calcularValorTotalProdutos(PRODUTO *produtos, int quantidade) {
-    int i;
-    float valorTotal = 0.0f;
-
-    if (produtos == NULL || quantidade <= 0) {
-        return 0.0f;
-    }
-
-    for (i = 0; i < quantidade; i++) {
-        valorTotal += produtos[i].preco;
-    }
-
-    return valorTotal;
-}
-// Troca dois produtos de posição na memória (swap)
-void trocarProdutos(PRODUTO *a, PRODUTO *b) {
-    PRODUTO temp;
-
-    if (a == NULL || b == NULL) {
-        return;
-    }
-
-    temp = *a;
-    *a = *b;
-    *b = temp;
 }
 // Retorna uma string indicando se a caixa está em controlo manual ou automático
 char *obterTextoControloCaixa(CAIXA *caixa) {
@@ -193,14 +135,27 @@ void listarProdutosPaginado(BASE_PRODUTOS *base) {
         }
     }
 }
-
-void editarProduto(BASE_PRODUTOS *base) {
+// adicionar produto a base de dados em memoria e txt
+void editarProduto(SISTEMA *sistema) {
+     BASE_PRODUTOS *base;
     int i;
     int idProduto;
     char novoNome[MAX_NOME_PRODUTO];
     float novoPreco;
     int novoTempoProcura;
     int novoTempoPagamento;
+
+    if (sistema == NULL) {
+        return;
+    }
+
+    if (sistema->estadoSimulacao == SIMULACAO_ATIVA ||
+        sistema->estadoSimulacao == SIMULACAO_PAUSADA) {
+        printf("Nao e possivel editar produtos enquanto a simulacao estiver ativa ou pausada.\n");
+        return;
+    }
+
+    base = &sistema->baseProdutos;
 
     if (base == NULL || base->dados == NULL || base->tamanho <= 0) {
         printf("Base de produtos invalida.\n");
@@ -226,17 +181,32 @@ void editarProduto(BASE_PRODUTOS *base) {
             lerInteiro("Novo tempo de procura: ", &novoTempoProcura, 1, 999999);
             lerInteiro("Novo tempo de pagamento: ", &novoTempoPagamento, 1, 999999);
 
-            copiarStringSeguro(
-                base->dados[i].nome,
-                novoNome,
-                MAX_NOME_PRODUTO
-            );
+            {
+                char *novoNomeAlocado;
+
+                novoNomeAlocado = (char *)realloc(
+                    base->dados[i].nome,
+                    strlen(novoNome) + 1
+                );
+
+                if (novoNomeAlocado == NULL) {
+                    printf("Erro ao realocar memoria para o nome do produto.\n");
+                    return;
+                }
+
+                base->dados[i].nome = novoNomeAlocado;
+                strcpy(base->dados[i].nome, novoNome);
+            }
 
             base->dados[i].preco = novoPreco;
             base->dados[i].tempoDeProcura = novoTempoProcura;
             base->dados[i].tempoDePagamento = novoTempoPagamento;
 
-            printf("\nProduto editado com sucesso.\n");
+            if (guardarBaseProdutos(base, FICHEIRO_PRODUTOS)) {
+                printf("\nProduto editado e guardado com sucesso.\n");
+            } else {
+                printf("\nProduto editado, mas erro ao guardar no ficheiro.\n");
+            }
 
             return;
         }

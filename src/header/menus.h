@@ -11,13 +11,13 @@ void listarClientesMenu(SISTEMA *sistema, const char *titulo, FILTRO_CLIENTE fil
 void listarTodosClientesMenu(SISTEMA *sistema);
 void listarClientesNasCaixasMenu(SISTEMA *sistema);
 void listarClientesComprandoMenu(SISTEMA *sistema);
-void mostrarPaginaClientes(CLIENTE **lista, int total, int pagina, const char *titulo);
+void mostrarPaginaClientes(SISTEMA *sistema, CLIENTE **lista, int total, int pagina, const char *titulo);
 int carregarClientesEmLista(SISTEMA *sistema, CLIENTE ***lista, FILTRO_CLIENTE filtro);
 int filtroTodosClientes(const CLIENTE *cliente);
 int filtroClientesNasCaixas(const CLIENTE *cliente);
 int filtroClientesComprando(const CLIENTE *cliente);
 
-void mostrarMenuPrincipal();
+void mostrarMenuPrincipal(SISTEMA *sistema);
 int lerOpcaoMenu(int min, int max);
 void executarOpcaoMenu(SISTEMA *sistema, int opcao);
 void mostrarMenuGestao();

@@ -103,6 +103,7 @@ void cicloSimulacao(SISTEMA *sistema) {
         int caixasAbertasAntes = contarCaixasAbertas(sistema);
 
         verificarAberturaCaixasSimulacao(sistema);
+        reforcarCaixasPosFecho(sistema);
 
         if (contarCaixasAbertas(sistema) == caixasAbertasAntes &&
             contarCaixasEmEncerramento(sistema) == 0) {
@@ -186,7 +187,7 @@ void aplicarOfertasSimulacao(SISTEMA *sistema) {
         }
 
         if (clienteTemDireitoAOferta(sistema, clienteAtual, clienteAtual->instanteInicioAtendimento)) {
-            aplicarOfertaCliente(clienteAtual);
+            aplicarOfertaCliente(clienteAtual, sistema);
         }
     }
 }
@@ -237,9 +238,11 @@ void avaliarMudancasFilaSimulacao(SISTEMA *sistema) {
 void verificarAberturaCaixasSimulacao(SISTEMA *sistema) {
     CAIXA *caixa;
     int i;
-    int existeFilaGrande = 0;
+    int totalClientesFila = 0;
+    int caixasAbertas = 0;
+    float mediaClientesPorFila;
 
-    if (sistema == NULL) {
+    if (sistema == NULL || sistema->caixas == NULL) {
         return;
     }
 
@@ -248,13 +251,17 @@ void verificarAberturaCaixasSimulacao(SISTEMA *sistema) {
             continue;
         }
 
-        if (obterTamanhoFila(&sistema->caixas[i].fila) > N_MINIMO_CLIENTES_CAIXAS) {
-            existeFilaGrande = 1;
-            break;
-        }
+        totalClientesFila += obterTamanhoFila(&sistema->caixas[i].fila);
+        caixasAbertas++;
     }
 
-    if (!existeFilaGrande) {
+    if (caixasAbertas <= 0) {
+        return;
+    }
+
+    mediaClientesPorFila = (float)totalClientesFila / caixasAbertas;
+
+    if (mediaClientesPorFila <= sistema->config.MAX_FILA) {
         return;
     }
 
@@ -311,8 +318,15 @@ void verificarEncerramentoCaixasSimulacao(SISTEMA *sistema) {
 // Gera novos clientes durante a simulação e contabiliza quantos foram criados
 void gerarNovosClientesSimulacao(SISTEMA *sistema) {
     int totalGerados;
+    int horaAtual;
 
     if (sistema == NULL) {
+        return;
+    }
+
+    horaAtual = (sistema->tempoAtual / 60) % 24;
+
+    if (horaAtual < HORARIO_ABERTURA || horaAtual >= HORARIO_FECHO) {
         return;
     }
 
@@ -347,9 +361,19 @@ void retomarSimulacao(SISTEMA *sistema) {
 }
 // Encerra a simulação, atualiza o estado do sistema e regista o evento no log
 void encerrarSimulacao(SISTEMA *sistema) {
+    char confirmacao;
     if (sistema == NULL) {
         return;
     }
+
+    printf("\nTem a certeza que deseja encerrar a simulacao? (S/N): ");
+    scanf(" %c", &confirmacao);
+
+    if (confirmacao != 'S' && confirmacao != 's') {
+        printf("Encerramento cancelado.\n");
+        return;
+    }
+
     sistema->estadoSimulacao = SIMULACAO_ENCERRADA;
     adicionarLog(&sistema->logs,sistema->tempoAtual,"SIMULACAO","Simulacao encerrada");
     printf("Simulacao encerrada com sucesso.\n");
@@ -561,6 +585,11 @@ void mostrarPainelSimulacao(SISTEMA *sistema) {
     printf("\nESTADO GERAL DO SISTEMA\n");
     printf("%s", LINHA_SEPARADORA);
 
+   
+    int horaAtual = (sistema->tempoAtual / 60) % 24;
+
+    printf("Mercado:              %s\n",(horaAtual >= HORARIO_ABERTURA && horaAtual < HORARIO_FECHO) ? "ABERTO" : "FECHADO");
+    printf("%s", LINHA_SEPARADORA);
     printf("Velocidade:              %dx\n", sistema->velocidadeSimulacao);
     printf("Estado da simulacao:     %s\n",obterTextoEstadoSimulacao(sistema->estadoSimulacao));
     printf("Clientes em compras:     %d\n", sistema->clientesComprando.tamanho);

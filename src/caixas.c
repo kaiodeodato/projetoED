@@ -654,3 +654,58 @@ int contarCaixasOperacionais(const SISTEMA *sistema) {
 
     return total;
 }
+// Mantem caixas suficientes abertas apos o horario de fecho com base na quantidade de clientes pendentes
+void reforcarCaixasPosFecho(SISTEMA *sistema) {
+    int horaAtual;
+    int horasAposFecho;
+    int clientesPendentes;
+    int caixasNecessarias;
+
+    if (sistema == NULL || sistema->caixas == NULL) {
+        return;
+    }
+
+    horaAtual = (sistema->tempoAtual / 60) % 24;
+
+    if (horaAtual < HORARIO_FECHO) {
+        return;
+    }
+
+    horasAposFecho = horaAtual - HORARIO_FECHO;
+
+    if (horasAposFecho >= DURACAO_REFORCO_POS_FECHO) {
+        return;
+    }
+
+    clientesPendentes =
+        sistema->clientesComprando.tamanho +
+        contarClientesNasCaixas(sistema);
+
+    if (clientesPendentes <= 0) {
+        return;
+    }
+
+    caixasNecessarias =
+        (clientesPendentes + CLIENTES_POR_CAIXA_POS_FECHO - 1) /
+        CLIENTES_POR_CAIXA_POS_FECHO;
+
+    abrirCaixasAteQuantidade(sistema, caixasNecessarias);
+}
+// Abre caixas ate atingir a quantidade desejada de caixas operacionais
+void abrirCaixasAteQuantidade(SISTEMA *sistema, int quantidadeDesejada) {
+    int i;
+
+    if (sistema == NULL || sistema->caixas == NULL) {
+        return;
+    }
+
+    for (i = 0; i < sistema->config.N_CAIXAS; i++) {
+        if (contarCaixasAbertas(sistema) >= quantidadeDesejada) {
+            return;
+        }
+
+        if (sistema->caixas[i].estado == CAIXA_FECHADA) {
+            abrirCaixa(sistema, i, CAIXA_SEM_CONTROLO_MANUAL);
+        }
+    }
+}

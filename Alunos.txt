@@ -1,0 +1,28 @@
+Kaio Viana 32146 - debugger
+simulacao.c, 
+listaDeCompras.c, 
+estatisticas.c, 
+config.c, 
+historico.c	
+   
+Ana Viana - 32147 - tester
+caixas.c, 
+hashClientes.c, 
+filas.c, 
+memoria.c, 
+produtos.c, 
+uteis.c	                    
+      
+Afonso Miguel – 33005 - relatório 
+clientes.c, 
+menus.c, 
+ficheiros.c, 
+colaboradores.c, 
+main.c	                 
+
+____________________________________
+
+Comando execução
+
+gcc src/*.c -I src/header -g -o main.exe && start cmd /c main.exe
+

@@ -1,0 +1,12 @@
+Caixa 4
+Codigo do atendente: 3562
+Nome do atendente: Catarina Nicole Silva Silva
+
+Pessoas atendidas:
+Nenhum cliente atendido.
+
+Clientes atendidos: 0
+Produtos vendidos: 0
+Valor vendido: 0.00
+Produtos oferecidos: 0
+Valor oferecido: 0.00
